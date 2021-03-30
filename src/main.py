@@ -170,6 +170,45 @@ class RatioFit:
         time.sleep(self.delay)
         wait_until_click(self.open_image(r"images\buttons\home.png"))
         time.sleep(self.delay)
+        # special event edge case
+        reward = self.open_image(r"images\edge cases\collect.png")
+        if shows_up(reward, 10):
+            instas = self.open_image(r"images\edge cases\insta monkey.png")
+            insta_g = self.open_image(r"images\edge cases\insta monkey green.png")
+            insta_b = self.open_image(r"images\edge cases\insta monkey blue.png")
+            insta_p = self.open_image(r"images\edge cases\insta monkey purple.png")
+            insta_y = self.open_image(r"images\edge cases\insta monkey yellow.png")
+            cont = self.open_image(r"images\edge cases\cont.png")
+            back = self.open_image("images/edge cases/back.png")
+            wait_until_click(reward)
+            while not is_present(cont):
+                if not any(click_image(f) for f in [instas, insta_g, insta_b, insta_p, insta_y]):
+                    time.sleep(1)
+                    pyautogui.click(*self.convert_pos((0.5, 0.5)))
+                    if click_image(back):
+                        break
+            if click_image(cont):
+                time.sleep(1)
+                pyautogui.press('esc')
+
+    def do_command(self, command):
+        if type(command) == int:
+            time.sleep(command)
+        elif type(command) == tuple:
+            if type(command[0]) == str and type(command[1]) == str:
+                self.open_track(*command)
+            elif type(command[0]) == str and type(command[1]) == tuple:
+                self.place(command[0], command[1], delay=self.delay)
+            elif type(command[0]) == int and type(command[1]) == tuple:
+                self.wait_to_upgrade(*command)
+
+    def play(self, parameters):
+        self.do_command(parameters[0])  # should start the track
+        self.do_command(parameters[1])  # should place the first tower
+        pyautogui.write('  ', interval=self.delay)
+        for command in parameters[2:]:
+            self.do_command(command)
+        self.wait_to_finish()
 
 
 def resource_path(relative_path):
@@ -237,32 +276,27 @@ def main():
     # to get out, move mouse to the corner of the screen to trigger the fail safe
     delay = 0.3
     screen = RatioFit(pyautogui.size(), 19/11, delay)
+    # menu options
     options = ['monkey meadow (easy)', 'flooded valley (easy)']
+    # how to play each menu option
+    plays = [(("monkey meadow", "easy"),  # choose map
+              ("hero", (0.1, 0.5)),  # place tower
+              10,  # delay
+              ("sniper", (0.8, 0.43)),
+              (1, (2, 2, 1, 2, 1))),  # upgrade tower
+
+             (("flooded valley", "easy"),
+              ('boat', (0.5, 0.15)),
+              (0, (2, 2, 3, 3, 2)),
+              25,
+              ('boat', (0.53, 0.73)),
+              (1, (2, 2, 1, 1, 1, 1)))]
     mainloop = True
     choice = pyautogui.confirm(text='Choose which map to play repeatedly',
                                title='BTD6 bot ready',
                                buttons=options)
-    if options.index(choice) == 0:
-        while mainloop:
-            # repeatedly play monkey meadow on easy
-            screen.open_track("monkey meadow", "easy")
-            screen.place('hero', (0.1, 0.5), delay=delay)
-            pyautogui.write('  ', interval=delay)
-            screen.wait_and_check_level(10)
-            screen.place('sniper', (0.8, 0.43), delay=delay)
-            screen.wait_to_upgrade(1, [2, 2, 1, 2, 1])
-            screen.wait_to_finish()
-    elif options.index(choice) == 1:
-        while mainloop:
-            # repeatedly play flooded valley on easy
-            screen.open_track("flooded valley", "easy")
-            screen.place('boat', (0.5, 0.15), delay=delay)
-            pyautogui.write('  ', interval=delay)
-            screen.wait_to_upgrade(0, [2, 2, 3, 3, 2])
-            screen.wait_and_check_level(25)
-            screen.place('boat', (0.53, 0.73), delay=delay)
-            screen.wait_to_upgrade(1, [2, 2, 1, 1, 1, 1])
-            screen.wait_to_finish()
+    while mainloop:
+        screen.play(plays[options.index(choice)])
 
 
 if __name__ == "__main__":
