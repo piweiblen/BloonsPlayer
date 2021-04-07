@@ -134,6 +134,7 @@ class RatioFit:
         time.sleep(1)
         while not click_image(track_img):
             wait_until_click(self.open_image(r"images\buttons\track switch.png"))
+            time.sleep(self.delay)
         wait_until_click(self.open_image("images\\buttons\\%s.png" % difficulty))
         wait_until_click(self.open_image(r"images\buttons\begin.png"))
         if shows_up(self.open_image(r"images\edge cases\overwrite.png"), 0.5):
