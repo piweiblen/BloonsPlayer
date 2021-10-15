@@ -1,8 +1,97 @@
 import pyautogui
+import ctypes
+from ctypes import wintypes
 from PIL import Image
 import time
 import sys
 import os
+
+# --- keyboard input initialization ---
+user32 = ctypes.WinDLL('user32', use_last_error=True)
+INPUT_MOUSE    = 0
+INPUT_KEYBOARD = 1
+INPUT_HARDWARE = 2
+KEYEVENTF_EXTENDEDKEY = 0x0001
+KEYEVENTF_KEYUP       = 0x0002
+KEYEVENTF_UNICODE     = 0x0004
+KEYEVENTF_SCANCODE    = 0x0008
+MAPVK_VK_TO_VSC = 0
+VK_TAB  = 0x09
+VK_MENU = 0x12
+# C struct definitions
+wintypes.ULONG_PTR = wintypes.WPARAM
+class MOUSEINPUT(ctypes.Structure):
+    _fields_ = (("dx",          wintypes.LONG),
+                ("dy",          wintypes.LONG),
+                ("mouseData",   wintypes.DWORD),
+                ("dwFlags",     wintypes.DWORD),
+                ("time",        wintypes.DWORD),
+                ("dwExtraInfo", wintypes.ULONG_PTR))
+class KEYBDINPUT(ctypes.Structure):
+    _fields_ = (("wVk",         wintypes.WORD),
+                ("wScan",       wintypes.WORD),
+                ("dwFlags",     wintypes.DWORD),
+                ("time",        wintypes.DWORD),
+                ("dwExtraInfo", wintypes.ULONG_PTR))
+    def __init__(self, *args, **kwds):
+        super(KEYBDINPUT, self).__init__(*args, **kwds)
+        # some programs use the scan code even if KEYEVENTF_SCANCODE
+        # isn't set in dwFflags, so attempt to map the correct code.
+        if not self.dwFlags & KEYEVENTF_UNICODE:
+            self.wScan = user32.MapVirtualKeyExW(self.wVk,
+                                                 MAPVK_VK_TO_VSC, 0)
+class HARDWAREINPUT(ctypes.Structure):
+    _fields_ = (("uMsg",    wintypes.DWORD),
+                ("wParamL", wintypes.WORD),
+                ("wParamH", wintypes.WORD))
+class INPUT(ctypes.Structure):
+    class _INPUT(ctypes.Union):
+        _fields_ = (("ki", KEYBDINPUT),
+                    ("mi", MOUSEINPUT),
+                    ("hi", HARDWAREINPUT))
+    _anonymous_ = ("_input",)
+    _fields_ = (("type",   wintypes.DWORD),
+                ("_input", _INPUT))
+LPINPUT = ctypes.POINTER(INPUT)
+def _check_count(result, func, args):
+    if result == 0:
+        raise ctypes.WinError(ctypes.get_last_error())
+    return args
+user32.SendInput.errcheck = _check_count
+user32.SendInput.argtypes = (wintypes.UINT, # nInputs
+                             LPINPUT,       # pInputs
+                             ctypes.c_int)  # cbSize
+def presskey(hexKeyCode):
+    x = INPUT(type=INPUT_KEYBOARD,
+              ki=KEYBDINPUT(wVk=hexKeyCode))
+    user32.SendInput(1, ctypes.byref(x), ctypes.sizeof(x))
+def releasekey(hexKeyCode):
+    x = INPUT(type=INPUT_KEYBOARD,
+              ki=KEYBDINPUT(wVk=hexKeyCode,
+                            dwFlags=KEYEVENTF_KEYUP))
+    user32.SendInput(1, ctypes.byref(x), ctypes.sizeof(x))
+chrhex = {'a':0x41, 'b':0x42, 'c':0x43, 'd':0x44, 'e':0x45, 'f':0x46, 'g':0x47, 'h':0x48, 'i':0x49,
+          'j':0x4A, 'k':0x4B, 'l':0x4C, 'm':0x4D, 'n':0x4E, 'o':0x4F, 'p':0x50, 'q':0x51, 'r':0x52,
+          's':0x53, 't':0x54, 'u':0x55, 'v':0x56, 'w':0x57, 'x':0x58, 'y':0x59, 'z':0x5A, 'A':0x41,
+          'B':0x42, 'C':0x43, 'D':0x44, 'E':0x45, 'F':0x46, 'G':0x47, 'H':0x48, 'I':0x49, 'J':0x4A,
+          'K':0x4B, 'L':0x4C, 'M':0x4D, 'N':0x4E, 'O':0x4F, 'P':0x50, 'Q':0x51, 'R':0x52, 'S':0x53,
+          'T':0x54, 'U':0x55, 'V':0x56, 'W':0x57, 'X':0x58, 'Y':0x59, 'Z':0x5A, ' ':0x20, '1':0x31,
+          '2':0x32, '3':0x33, '4':0x34, '5':0x35, '6':0x36, '7':0x37, '8':0x38, '9':0x39, '0':0x30,
+          'enter':0x0D, 'back':0x08, 'left':0x25, 'up':0x26, 'right':0x27, 'down':0x28, 'ctrl':0x11,
+          'shift':0x10, 'tab':0x09, 'Capital':0x14, '\\':0xDC, ';':0xBA, '\r':0x0D, '\x08':0x08,
+          'Lcontrol': 0xA2, 'Rcontrol': 0xA3, 'Lmenu': 0xA4, 'Rmenu': 0xA5, 'Lwin': 0x5B,
+          'Rwin': 0x5C, 'Oem_3': 0xC0, '`': 0xC0, 'volume_mute': 0xAD, 'volume_down': 0xAE,
+          'volume_up': 0xAF, 'media_next': 0xB0, 'media_prev':0xB1, 'media_pause': 0xB3,
+          'apps': 0x5D, 'snapshot': 0x2C, 'delete': 0x2E, 'Lshift': 0xA0, 'Rshift': 0xA1,
+          'pause': 0x13, 'space':0x20, 'escape':0x1B, '.':0xBE, ',':0xBC, '/':0xBF}
+
+
+def hitkeys(keys, delay=0.001):
+    for key in keys:
+        presskey(chrhex[key])
+        time.sleep(delay)
+        releasekey(chrhex[key])
+        time.sleep(delay)
 
 
 class RatioFit:
@@ -74,7 +163,7 @@ class RatioFit:
         # place the specified monkey at the specified position
         monkey = monkey.lower()
         self.monkeys_placed.append((monkey, position))
-        pyautogui.press(self.monkey_dict[monkey])
+        hitkeys(self.monkey_dict[monkey])
         pyautogui.moveTo(*self.convert_pos(position))
         time.sleep(delay/2)
         pyautogui.click(*self.convert_pos(position))
@@ -84,9 +173,9 @@ class RatioFit:
         # upgrade the specified monkey into the specified path
         pyautogui.click(*self.convert_pos(self.monkeys_placed[monkey_index][1]))
         time.sleep(delay/2)
-        pyautogui.press(self.upgrade_dict[path])
+        hitkeys(self.upgrade_dict[path])
         time.sleep(delay/2)
-        pyautogui.press('esc')
+        hitkeys(['escape'])
 
     def ready_to_upgrade(self, path):
         # determines whether the selected monkey is ready to be upgraded into the specified path
@@ -110,10 +199,10 @@ class RatioFit:
             while not self.ready_to_upgrade(p):
                 if self.check_for_level_up():
                     pyautogui.click(*self.convert_pos(self.monkeys_placed[monkey_index][1]))
-            time.sleep(delay/2)
-            pyautogui.press(self.upgrade_dict[p])
-            time.sleep(delay/2)
-        pyautogui.press('esc')
+            time.sleep(delay)
+            hitkeys(self.upgrade_dict[p])
+            time.sleep(delay)
+        hitkeys(['escape'])
 
     def open_image(self, path, other=1):
         # opens and scales images
@@ -147,7 +236,7 @@ class RatioFit:
             if shows_up(self.open_image(r"images\edge cases\monkey knowledge.png"), 1):
                 click_image(self.open_image(r"images\edge cases\monkey knowledge.png"))
             time.sleep(self.delay)
-            pyautogui.press(' ')
+            hitkeys(' ')
             return True
         return False
 
@@ -158,7 +247,7 @@ class RatioFit:
             if shows_up(self.open_image(r"images\edge cases\monkey knowledge.png"), 1):
                 click_image(self.open_image(r"images\edge cases\monkey knowledge.png"))
             time.sleep(0.3)
-            pyautogui.press(' ')
+            hitkeys(' ')
             time.sleep(time_left)
 
     def wait_to_finish(self):
@@ -190,7 +279,7 @@ class RatioFit:
                         break
             if click_image(cont):
                 time.sleep(1)
-                pyautogui.press('esc')
+            hitkeys(['escape'])
 
     def do_command(self, command):
         if type(command) == int:
@@ -201,12 +290,12 @@ class RatioFit:
             elif type(command[0]) == str and type(command[1]) == tuple:
                 self.place(command[0], command[1], delay=self.delay)
             elif type(command[0]) == int and type(command[1]) == tuple:
-                self.wait_to_upgrade(*command)
+                self.wait_to_upgrade(*command, delay=self.delay)
 
     def play(self, parameters):
         self.do_command(parameters[0])  # should start the track
         self.do_command(parameters[1])  # should place the first tower
-        pyautogui.write('  ', interval=self.delay)
+        hitkeys('  ', self.delay)
         for command in parameters[2:]:
             self.do_command(command)
         self.wait_to_finish()
@@ -278,13 +367,45 @@ def main():
     delay = 0.3
     screen = RatioFit(pyautogui.size(), 19/11, delay)
     # menu options
-    options = ['monkey meadow (easy)', 'flooded valley (easy)']
+    options = ['monkey meadow (easy)',
+               'tree stump (easy)',
+               'town center (easy)',
+               'the cabin (easy)',
+               'flooded valley (easy)']
     # how to play each menu option
     plays = [(("monkey meadow", "easy"),  # choose map
               ("hero", (0.1, 0.5)),  # place tower
               10,  # delay
               ("sniper", (0.8, 0.43)),
               (1, (2, 2, 1, 2, 1))),  # upgrade tower
+
+             (("tree stump", "easy"),
+              ("ninja", (0.4, 0.4)),
+              (0, (3, 1, 1, 3, 3)),
+              15,
+              ("ninja", (0.4, 0.31)),
+              (1, (3, 1, 1, 3, 1, 1)),
+              (0, (3,))),
+
+             (("town center", "easy"),
+              ("dart", (0.26, 0.78)),
+              (0, (3, 3, 3, 3, 2, 2)),
+              15,
+              ("dart", (0.18, 0.47)),
+              (1, (1, 1, 1, 1, 2, 2)),
+              15,
+              ("dart", (0.12, 0.65)),
+              (2, (3, 3, 3, 3, 2, 2))),
+
+             (("the cabin", "easy"),
+              ("boomerang", (0.6, 0.28)),
+              (0, (3, 3, 1, 1, 1, 1)),
+              10,
+              ("sub", (0.54, 0.28)),
+              (1, (1, 1, 1)),
+              7,
+              ("boomerang", (0.6, 0.12)),
+              (2, (2, 2, 3, 3, 3, 3))),
 
              (("flooded valley", "easy"),
               ('boat', (0.5, 0.15)),
