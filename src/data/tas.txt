@@ -1,0 +1,45 @@
+"monkey meadow (easy)" # option title
+("monkey meadow", "easy")  # choose map
+("hero", (0.1, 0.5))  # place tower
+10  # delay
+("sniper", (0.8, 0.43))
+(1, (2, 2, 1, 2, 1))  # upgrade tower
+
+"tree stump (easy)"
+("tree stump", "easy")
+("ninja", (0.4, 0.4))
+(0, (3, 1, 1, 3, 3))
+15
+("ninja", (0.4, 0.31))
+(1, (3, 1, 1, 3, 1, 1))
+(0, (3,))
+
+"town center (easy)"
+("town center", "easy")
+("dart", (0.26, 0.78))
+(0, (3, 3, 3, 3, 2, 2))
+15
+("dart", (0.18, 0.47))
+(1, (1, 1, 1, 1, 2, 2))
+15,
+("dart", (0.12, 0.65))
+(2, (3, 3, 3, 3, 2, 2))
+
+"the cabin (easy)"
+("the cabin", "easy")
+("boomerang", (0.6, 0.28))
+(0, (3, 3, 1, 1, 1, 1))
+10
+("sub", (0.54, 0.28))
+(1, (1, 1, 1))
+7
+("boomerang", (0.6, 0.12))
+(2, (2, 2, 3, 3, 3, 3))
+
+"flooded valley (easy)"
+("flooded valley", "easy")
+('boat', (0.5, 0.15))
+(0, (2, 2, 3, 3, 2))
+25
+('boat', (0.53, 0.75))
+(1, (2, 2, 1, 1, 1, 1))

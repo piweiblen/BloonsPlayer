@@ -2,6 +2,7 @@ import pyautogui
 import ctypes
 from ctypes import wintypes
 from PIL import Image
+import threading
 import time
 import sys
 import os
@@ -218,12 +219,16 @@ class RatioFit:
     def open_track(self, track, difficulty):
         # opens the specified track into the specified difficulty from the home screen
         # WILL overwrite saves
-        wait_until_click(self.open_image(r"images\buttons\play.png"))
+        play_button = self.open_image(r"images\buttons\play.png")
+        arrow_button = self.open_image(r"images\buttons\track switch.png")
         track_img = self.open_image("images\\buttons\\%s.png" % track)
-        time.sleep(1)
+        static_click_and_confirm(play_button, arrow_button)
         while not click_image(track_img):
-            wait_until_click(self.open_image(r"images\buttons\track switch.png"))
-            time.sleep(self.delay)
+            if is_present(arrow_button):
+                wait_until_click(arrow_button)
+                time.sleep(self.delay)
+            elif is_present(play_button):
+                wait_until_click(play_button)
         wait_until_click(self.open_image("images\\buttons\\%s.png" % difficulty))
         wait_until_click(self.open_image(r"images\buttons\begin.png"))
         if shows_up(self.open_image(r"images\edge cases\overwrite.png"), 0.5):
@@ -258,11 +263,13 @@ class RatioFit:
         time.sleep(self.delay)
         wait_until_click(next_but)
         time.sleep(self.delay)
-        wait_until_click(self.open_image(r"images\buttons\home.png"))
+        home = self.open_image(r"images\buttons\home.png")
+        reward = self.open_image(r"images\edge cases\collect.png")
+        play_button = self.open_image(r"images\buttons\play.png")
+        static_click_and_confirm(home, [reward, play_button])
         time.sleep(self.delay)
         # special event edge case
-        reward = self.open_image(r"images\edge cases\collect.png")
-        if shows_up(reward, 10):
+        if is_present(reward):
             instas = self.open_image(r"images\edge cases\insta monkey.png")
             insta_g = self.open_image(r"images\edge cases\insta monkey green.png")
             insta_b = self.open_image(r"images\edge cases\insta monkey blue.png")
@@ -312,15 +319,40 @@ def resource_path(relative_path):
     return os.path.join(base_path, relative_path)
 
 
+def static_click_and_confirm(image, confirm_images, threshold=4):
+    # function to click an image on screen
+    # makes sure the image is not moving when clicked
+    # will continue to click image until confirmation image is seen
+    if type(confirm_images) != list:
+        confirm_images = [confirm_images]
+    while True:
+        prev_spot = (0, -9000)
+        spot = (-9000,  0)
+        while (spot[0]-prev_spot[0])**2 + (spot[1]-prev_spot[1])**2 > threshold:
+            location = pyautogui.locateOnScreen(image, confidence=0.85)
+            if location is not None:
+                coords = pyautogui.center(location)
+                prev_spot = spot
+                spot = coords
+            if any_present(confirm_images):
+                break
+        if any_present(confirm_images):
+            break
+        pyautogui.click(*spot)
+
+
 def is_present(image):
     # function which determines if a certain image is present
-    try:
-        spot = pyautogui.locateOnScreen(image, confidence=0.85)
-    except pyautogui.ImageNotFoundException:  # not necessary with this version I guess
-        return False
-    if spot is None:
-        return False
-    return True
+    spot = pyautogui.locateOnScreen(image, confidence=0.85)
+    return spot is not None
+
+
+def any_present(images):
+    # function which determines if a certain image is present
+    for image in images:
+        if is_present(image):
+            return True
+    return False
 
 
 def wait_to_see(image):
@@ -334,10 +366,7 @@ def click_image(image, delay=0.):
     # returns false if image is not on screen
     # returns true if image is successfully clicked
     # will delay by given amount only if button found
-    try:
-        spot = pyautogui.locateOnScreen(image, confidence=0.85)
-    except pyautogui.ImageNotFoundException:  # not necessary with this version I guess
-        return False
+    spot = pyautogui.locateOnScreen(image, confidence=0.85)
     if spot is None:
         return False
     coords = pyautogui.center(spot)
@@ -362,63 +391,51 @@ def shows_up(image, secs):
     return False
 
 
+waiting = False
+
+
+def print_clicks():
+    global waiting
+    pos_finder = RatioFit(pyautogui.size(), 19/11, 0)
+    while waiting:
+        input()
+        time.sleep(2)
+        print(pos_finder.revert_pos(pyautogui.position()))
+        time.sleep(2)
+        print(pos_finder.revert_pos(pyautogui.position()))
+        time.sleep(2)
+        print(pos_finder.revert_pos(pyautogui.position()))
+        time.sleep(2)
+        print(pos_finder.revert_pos(pyautogui.position()))
+        time.sleep(2)
+        print(pos_finder.revert_pos(pyautogui.position()))
+
+
 def main():
+    global waiting
     # to get out, move mouse to the corner of the screen to trigger the fail safe
     delay = 0.3
     screen = RatioFit(pyautogui.size(), 19/11, delay)
-    # menu options
-    options = ['monkey meadow (easy)',
-               'tree stump (easy)',
-               'town center (easy)',
-               'the cabin (easy)',
-               'flooded valley (easy)']
-    # how to play each menu option
-    plays = [(("monkey meadow", "easy"),  # choose map
-              ("hero", (0.1, 0.5)),  # place tower
-              10,  # delay
-              ("sniper", (0.8, 0.43)),
-              (1, (2, 2, 1, 2, 1))),  # upgrade tower
-
-             (("tree stump", "easy"),
-              ("ninja", (0.4, 0.4)),
-              (0, (3, 1, 1, 3, 3)),
-              15,
-              ("ninja", (0.4, 0.31)),
-              (1, (3, 1, 1, 3, 1, 1)),
-              (0, (3,))),
-
-             (("town center", "easy"),
-              ("dart", (0.26, 0.78)),
-              (0, (3, 3, 3, 3, 2, 2)),
-              15,
-              ("dart", (0.18, 0.47)),
-              (1, (1, 1, 1, 1, 2, 2)),
-              15,
-              ("dart", (0.12, 0.65)),
-              (2, (3, 3, 3, 3, 2, 2))),
-
-             (("the cabin", "easy"),
-              ("boomerang", (0.6, 0.28)),
-              (0, (3, 3, 1, 1, 1, 1)),
-              10,
-              ("sub", (0.54, 0.28)),
-              (1, (1, 1, 1)),
-              7,
-              ("boomerang", (0.6, 0.12)),
-              (2, (2, 2, 3, 3, 3, 3))),
-
-             (("flooded valley", "easy"),
-              ('boat', (0.5, 0.15)),
-              (0, (2, 2, 3, 3, 2)),
-              25,
-              ('boat', (0.53, 0.73)),
-              (1, (2, 2, 1, 1, 1, 1)))]
+    # import menu options
+    file = open(resource_path("data\\tas.txt"))
+    raw_data = file.read()
+    file.close()
+    option_names = []
+    plays = []
+    for datum in raw_data.split("\n\n"):
+        data = datum.split('\n')
+        option_names.append(eval(data[0]))
+        plays.append(tuple(eval(d) for d in data[1:]))
     mainloop = True
+    waiting = True
+    tac = threading.Thread(target=print_clicks)
+    tac.start()
     choice = pyautogui.confirm(text='Choose which map to play repeatedly',
                                title='BTD6 bot ready',
-                               buttons=options)
+                               buttons=option_names)
+    waiting = False
     while mainloop:
-        screen.play(plays[options.index(choice)])
+        screen.play(plays[option_names.index(choice)])
 
 
 if __name__ == "__main__":
