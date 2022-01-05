@@ -161,7 +161,8 @@ class RatioFit:
                     other = 0
                 else:
                     other = other_b
-                self.image_dict[folder+' '+image] = self.open_image(os.path.join(base_path, folder, image), other=other)
+                self.image_dict[str(folder)+' '+str(image)] = self.open_image(os.path.join(base_path, folder, image),
+                                                                              other=other)
 
     def convert_pos(self, rel_pos):
         # return absolute screen position based on relative 0-1 floats
@@ -231,6 +232,7 @@ class RatioFit:
         play_button = self.image_dict["buttons play.png"]
         arrow_button = self.image_dict["buttons track switch.png"]
         track_img = self.image_dict["buttons %s.png" % track]
+        track_confirm = self.image_dict["track confirms %s.png" % track]
         static_click_and_confirm(play_button, arrow_button)
         while not click_image(track_img):
             if is_present(arrow_button):
@@ -242,7 +244,13 @@ class RatioFit:
         wait_until_click(self.image_dict["buttons %s.png" % mode])
         if shows_up(self.image_dict["edge cases overwrite.png"], 0.5):
             wait_until_click(self.image_dict["buttons OK.png"])
-        wait_to_see(self.image_dict["track confirms %s.png" % track])
+        if mode in ["chimps", "impoppable"]:
+            wait_until_click(self.image_dict["buttons OK.png"])
+            time.sleep(1)
+        if mode == "apopalypse":
+            apop_okay = self.image_dict["edge cases apop play.png"]
+            static_click_and_confirm(apop_okay, track_confirm)
+        wait_to_see(track_confirm)
 
     def check_for_level_up(self):
         # function checks if you've leveled up and handles it
@@ -314,7 +322,10 @@ class RatioFit:
         log('\n' + str(parameters[1]))
         self.do_command(parameters[1])  # should place the first tower
         log('\nStart (hit space twice)')
-        hitkeys('  ', self.delay)
+        if parameters[0][2] == "apopalypse":
+            hitkeys(' ', self.delay)
+        else:
+            hitkeys('  ', self.delay)
         for command in parameters[2:]:
             log('\n' + str(command))
             self.do_command(command)
