@@ -526,8 +526,12 @@ def shows_up(image, secs):
 def is_loading():
     # checks if the loading screen is being shown
     screen = pyautogui.screenshot()
-    bbox = screen.getbbox()
-    return bool(bbox[2] - bbox[0] < screen.width/2 and bbox[3] - bbox[1] < screen.height/2)
+    pixel_count = screen.width * screen.height
+    black = 0
+    for pixel in screen.getdata():
+        if pixel == (0, 0, 0):
+            black += 1
+    return bool(black/pixel_count > 0.5)
 
 
 waiting = False
