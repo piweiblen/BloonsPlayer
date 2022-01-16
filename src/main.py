@@ -1,5 +1,6 @@
 import pyautogui
 import tkinter
+from threading import Thread
 import ctypes
 from ctypes import wintypes
 from PIL import Image
@@ -148,21 +149,22 @@ class RatioFit:
             "engineer": "l"
         }
         self.monkeys_placed = []
+        self.abilities_repeat = []
+        self.ab_repeat_on = False
         # open and convert all images
+        self.image_pos_dict = {}
         self.image_dict = {}
         base_path = resource_path("images\\")
         for folder in os.listdir(base_path):
-            if folder == "track confirms":
-                other_b = 0
-            else:
-                other_b = 1
             for image in os.listdir(os.path.join(base_path, folder)):
-                if folder == "buttons" and image == "upgrade.png":
+                img_name = image[:image.rfind('.')]
+                if folder == "buttons" and img_name == "upgrade":
                     other = 0
                 else:
-                    other = other_b
-                self.image_dict[str(folder)+' '+str(image)] = self.open_image(os.path.join(base_path, folder, image),
-                                                                              other=other)
+                    other = 1
+                key = str(folder)+' '+str(img_name)
+                path = os.path.join(base_path, folder, image)
+                self.image_dict[key] = self.open_image(path, other)
 
     def convert_pos(self, rel_pos):
         # return absolute screen position based on relative 0-1 floats
@@ -176,46 +178,28 @@ class RatioFit:
         y = (abs_pos[1] - self.offset[1]) / self.height
         return x, y
 
-    def place(self, monkey, position, delay=0.):
-        # place the specified monkey at the specified position
-        monkey = monkey.lower()
-        self.monkeys_placed.append((monkey, position))
-        hitkeys(self.monkey_dict[monkey])
-        pyautogui.moveTo(*self.convert_pos(position))
-        time.sleep(delay/2)
-        pyautogui.click(*self.convert_pos(position))
-        time.sleep(delay/2)
+    def timer_hit(self):
+        while self.ab_repeat_on:
+            current_num = len(self.abilities_repeat)
+            for key in self.abilities_repeat:
+                hitkeys([key])
+                time.sleep(1/current_num)
 
-    def ready_to_upgrade(self, path):
-        # determines whether the selected monkey is ready to be upgraded into the specified path
-        green = self.image_dict["buttons upgrade.png"]
-        spots = list(pyautogui.locateAllOnScreen(green, confidence=0.9))
-        heights = [self.revert_pos(pyautogui.center(f))[1] for f in spots]
-        if path == 1:
-            return any(f < 0.54 for f in heights)
-        if path == 2:
-            return any(0.54 < f < 0.68 for f in heights)
-        if path == 3:
-            return any(0.68 < f for f in heights)
+    def add_repeat_key(self, key):
+        key = str(key)
+        if key in self.abilities_repeat:
+            return None  # already repeating this key
+        self.abilities_repeat.append(key)
+        if not self.ab_repeat_on:
+            self.ab_repeat_on = True
+            newt = Thread(target=self.timer_hit, daemon=True)
+            newt.start()
 
-    def wait_to_upgrade(self, monkey_index, path, delay=0.):
-        # upgrade the specified monkey into the specified path
-        # this function simply waits until you have enough money to do so
-        log(": ")
-        if type(path) == int:
-            path = [path]
-        pyautogui.click(*self.convert_pos(self.monkeys_placed[monkey_index][1]))
-        for p in path:
-            while not self.ready_to_upgrade(p):
-                if self.check_for_level_up():
-                    pyautogui.click(*self.convert_pos(self.monkeys_placed[monkey_index][1]))
-            time.sleep(delay)
-            hitkeys(self.upgrade_dict[p])
-            log(self.upgrade_dict[p])
-            time.sleep(delay)
-        hitkeys(['escape'])
+    def cancel_repeat_keys(self):
+        self.ab_repeat_on = False
+        self.abilities_repeat = []
 
-    def open_image(self, path, other=1):
+    def open_image(self, path, other):
         # opens and scales images
         img = Image.open(resource_path(path))
         if other:
@@ -226,37 +210,133 @@ class RatioFit:
             img = img.resize((int(img.width * self.image_ratio), int(img.height * self.image_ratio)))
         return img
 
+    def click_fixed(self, image_name):
+        # high performance way to click an image which only ever appears in one location on screen
+        # return true if clicked, return false if not present
+        image = self.image_dict[image_name]
+        if image_name in self.image_pos_dict:
+            known_pos = self.image_pos_dict[image_name]
+            w = image.width * 11 // 10
+            h = image.height * 11 // 10
+            region = (known_pos[0] - w//2, known_pos[1] - h//2, w, h)
+            section = pyautogui.screenshot(region=region)
+            if pyautogui.locate(image, section, confidence=0.85) is not None:
+                pyautogui.click(*known_pos)
+                return True
+            else:
+                return False
+        else:
+            location = pyautogui.locateCenterOnScreen(image, confidence=0.85)
+            if location is not None:
+                self.image_pos_dict[image_name] = location
+                pyautogui.click(*location)
+                return True
+            else:
+                return False
+
+    def click(self, position, delay=0.):
+        converted_pos = self.convert_pos(position)
+        pyautogui.moveTo(*converted_pos)
+        time.sleep(delay/2)
+        pyautogui.click(*converted_pos)
+        time.sleep(delay/2)
+
+    def place(self, monkey, position, delay=0.):
+        # place the specified monkey at the specified position
+        monkey = monkey.lower()
+        self.monkeys_placed.append((monkey, position))
+        hitkeys(self.monkey_dict[monkey])
+        self.click(position, delay=delay)
+
+    def ready_to_upgrade(self, path):
+        # determines whether the selected monkey is ready to be upgraded into the specified path
+        green = self.image_dict["buttons upgrade"]
+        spots = list(pyautogui.locateAllOnScreen(green, confidence=0.9))
+        heights = [self.revert_pos(pyautogui.center(f))[1] for f in spots]
+        if path == 1:
+            return any(f < 0.54 for f in heights)
+        if path == 2:
+            return any(0.54 < f < 0.68 for f in heights)
+        if path == 3:
+            return any(0.68 < f for f in heights)
+
+    def ready_to_upgrade_hero(self):
+        # determines whether a hero is ready to be upgraded
+        green = self.image_dict["buttons hero upgrade"]
+        spots = list(pyautogui.locateAllOnScreen(green, confidence=0.9))
+        heights = [self.revert_pos(pyautogui.center(f))[1] for f in spots]
+        spot = pyautogui.locateOnScreen(green, confidence=0.9)
+        if spot is None:
+            return False
+        coords = pyautogui.center(spot)
+        x = int(coords[0])
+        y = int(coords[1])
+        return pyautogui.pixelMatchesColor(x, y, (100, 210, 0), tolerance=20)
+
+    def wait_to_upgrade(self, monkey_index, path, delay=0.):
+        # upgrade the specified monkey into the specified path
+        # this function simply waits until you have enough money to do so
+        log(": ")
+        position = self.convert_pos(self.monkeys_placed[monkey_index][1])
+        pyautogui.click(*position)  # select monkey
+        if self.monkeys_placed[monkey_index][0] == "hero":
+            if type(path) == int:
+                num = path
+            else:
+                num = len(path)
+            for f in range(num):
+                while not self.ready_to_upgrade_hero():
+                    if self.check_for_level_up():
+                        pyautogui.click(*position)
+                time.sleep(delay)
+                hitkeys(self.upgrade_dict[1])
+                log(self.upgrade_dict[1])
+                time.sleep(delay)
+        else:
+            if type(path) == int:
+                path = [path]
+            for p in path:
+                while not self.ready_to_upgrade(p):
+                    if self.check_for_level_up():
+                        pyautogui.click(*position)
+                time.sleep(delay)
+                hitkeys(self.upgrade_dict[p])
+                log(self.upgrade_dict[p])
+                time.sleep(delay)
+        hitkeys(['escape'])
+
     def open_track(self, track, difficulty, mode):
         # opens the specified track into the specified difficulty from the home screen
         # WILL overwrite saves
-        play_button = self.image_dict["buttons play.png"]
-        arrow_button = self.image_dict["buttons track switch.png"]
-        track_img = self.image_dict["buttons %s.png" % track]
-        track_confirm = self.image_dict["track confirms %s.png" % track]
-        static_click_and_confirm(play_button, arrow_button)
-        while not click_image(track_img):
-            if is_present(arrow_button):
-                wait_until_click(arrow_button)
-                time.sleep(self.delay)
-            elif is_present(play_button):
-                wait_until_click(play_button)
-        wait_until_click(self.image_dict["buttons %s.png" % difficulty])
-        wait_until_click(self.image_dict["buttons %s.png" % mode])
-        if shows_up(self.image_dict["edge cases overwrite.png"], 0.5):
-            wait_until_click(self.image_dict["buttons OK.png"])
-        if mode in ["chimps", "impoppable"]:
-            wait_until_click(self.image_dict["buttons OK.png"])
+        play_button = self.image_dict["buttons play"]
+        wait_and_static_click(play_button)
+        while not self.click_fixed("tracks %s" % track):
+            if not self.click_fixed("buttons track switch"):
+                click_image(play_button)
+        wait_until_click(self.image_dict["buttons %s" % difficulty])
+        wait_until_click(self.image_dict["buttons %s" % mode])
+        if shows_up(self.image_dict["edge cases overwrite"], 0.5):
+            wait_until_click(self.image_dict["buttons OK"])
             time.sleep(1)
+        if mode in ["chimps", "impoppable"]:
+            wait_until_click(self.image_dict["buttons OK"])
+            time.sleep(1)
+            return None
         if mode == "apopalypse":
-            apop_okay = self.image_dict["edge cases apop play.png"]
-            static_click_and_confirm(apop_okay, track_confirm)
-        wait_to_see(track_confirm)
+            wait_and_static_click(self.image_dict["edge cases apop play"])
+            time.sleep(1)
+            return None
+        while not is_loading():  # make sure we see the loading screen
+            pass
+        while is_loading():  # wait for the loading screen
+            pass
+        time.sleep(self.delay)
 
     def check_for_level_up(self):
         # function checks if you've leveled up and handles it
-        if click_image(self.image_dict["edge cases LEVEL UP.png"]):
-            if shows_up(self.image_dict["edge cases monkey knowledge.png"], 1):
-                click_image(self.image_dict["edge cases monkey knowledge.png"])
+        if click_image(self.image_dict["edge cases LEVEL UP"]):
+            if shows_up(self.image_dict["edge cases monkey knowledge"], 1):
+                click_image(self.image_dict["edge cases monkey knowledge"])
             time.sleep(self.delay)
             hitkeys(' ')
             return True
@@ -264,36 +344,38 @@ class RatioFit:
 
     def wait_and_check_level(self, secs):
         # function waits a given amount of time, and regularly check if you've leveled up
-        if time_left := shows_up(self.image_dict["edge cases LEVEL UP.png"], secs):
-            wait_until_click(self.image_dict["edge cases LEVEL UP.png"])
-            if shows_up(self.image_dict["edge cases monkey knowledge.png"], 1):
-                click_image(self.image_dict["edge cases monkey knowledge.png"])
+        if time_left := shows_up(self.image_dict["edge cases LEVEL UP"], secs):
+            wait_until_click(self.image_dict["edge cases LEVEL UP"])
+            if shows_up(self.image_dict["edge cases monkey knowledge"], 1):
+                click_image(self.image_dict["edge cases monkey knowledge"])
             time.sleep(self.delay)
             hitkeys(' ')
             time.sleep(time_left)
 
     def wait_to_finish(self):
         # waits for the round to finish, then goes to the home screen
-        next_but = self.image_dict["buttons NEXT.png"]
+        next_but = self.image_dict["buttons NEXT"]
         while not is_present(next_but):
+            click_image(self.image_dict["buttons insta-monkey"])  # for chimps/impoppable
             self.check_for_level_up()
         time.sleep(self.delay)
         wait_until_click(next_but)
+        self.cancel_repeat_keys()
         time.sleep(self.delay)
-        home = self.image_dict["buttons home.png"]
-        reward = self.image_dict["edge cases collect.png"]
-        play_button = self.image_dict["buttons play.png"]
+        home = self.image_dict["buttons home"]
+        reward = self.image_dict["edge cases collect"]
+        play_button = self.image_dict["buttons play"]
         static_click_and_confirm(home, [reward, play_button])
         time.sleep(self.delay)
         # special event edge case
         if is_present(reward):
-            instas = self.image_dict["edge cases insta monkey.png"]
-            insta_g = self.image_dict["edge cases insta monkey green.png"]
-            insta_b = self.image_dict["edge cases insta monkey blue.png"]
-            insta_p = self.image_dict["edge cases insta monkey purple.png"]
-            insta_y = self.image_dict["edge cases insta monkey yellow.png"]
-            cont = self.image_dict["edge cases cont.png"]
-            back = self.image_dict["edge cases back.png"]
+            instas = self.image_dict["edge cases insta monkey"]
+            insta_g = self.image_dict["edge cases insta monkey green"]
+            insta_b = self.image_dict["edge cases insta monkey blue"]
+            insta_p = self.image_dict["edge cases insta monkey purple"]
+            insta_y = self.image_dict["edge cases insta monkey yellow"]
+            cont = self.image_dict["edge cases cont"]
+            back = self.image_dict["edge cases back"]
             wait_until_click(reward)
             while not is_present(cont):
                 if not any(click_image(f) for f in [instas, insta_g, insta_b, insta_p, insta_y]):
@@ -307,14 +389,23 @@ class RatioFit:
 
     def do_command(self, command):
         if type(command) == int:
-            self.wait_and_check_level(command)
+            self.wait_and_check_level(command)  # delay
         elif type(command) == tuple:
             if type(command[0]) == str and type(command[1]) == str:
-                self.open_track(*command)
+                self.open_track(*command)  # choose map
+            elif type(command[0]) == float and type(command[1]) == float:
+                self.click(command)  # click at location
             elif type(command[0]) == str and type(command[1]) == tuple:
-                self.place(command[0], command[1], delay=self.delay)
-            elif type(command[0]) == int and type(command[1]) == tuple:
-                self.wait_to_upgrade(*command, delay=self.delay)
+                self.place(command[0], command[1], delay=self.delay)  # place tower
+            elif type(command[0]) == int and type(command[1]) in (tuple, int):
+                self.wait_to_upgrade(*command, delay=self.delay)  # upgrade tower
+        elif type(command) == str:
+            re_ability_pre = "repeat ability "
+            if command.startswith(re_ability_pre):
+                self.add_repeat_key(command[len(re_ability_pre):])
+            ability_pre = "ability "
+            if command.startswith(ability_pre):
+                hitkeys([command[len(ability_pre):]])
 
     def play(self, parameters):
         log('\n' + str(parameters[0]))
@@ -322,7 +413,7 @@ class RatioFit:
         log('\n' + str(parameters[1]))
         self.do_command(parameters[1])  # should place the first tower
         log('\nStart (hit space twice)')
-        if parameters[0][2] == "apopalypse":
+        if parameters[0][2] == "apopalypse":  # apopalypse runs on its own
             hitkeys(' ', self.delay)
         else:
             hitkeys('  ', self.delay)
@@ -344,6 +435,18 @@ def resource_path(relative_path):
     return os.path.join(base_path, relative_path)
 
 
+def wait_and_static_click(image, threshold=4):
+    # wait for an image to appear, then click when it is not moving
+    prev_spot = (0, -9000)
+    spot = (-9000,  0)
+    while (spot[0]-prev_spot[0])**2 + (spot[1]-prev_spot[1])**2 > threshold:
+        location = pyautogui.locateCenterOnScreen(image, confidence=0.85)
+        if location is not None:
+            prev_spot = spot
+            spot = location
+    pyautogui.click(*spot)
+
+
 def static_click_and_confirm(image, confirm_images, threshold=4):
     # function to click an image on screen
     # makes sure the image is not moving when clicked
@@ -354,11 +457,10 @@ def static_click_and_confirm(image, confirm_images, threshold=4):
         prev_spot = (0, -9000)
         spot = (-9000,  0)
         while (spot[0]-prev_spot[0])**2 + (spot[1]-prev_spot[1])**2 > threshold:
-            location = pyautogui.locateOnScreen(image, confidence=0.85)
+            location = pyautogui.locateCenterOnScreen(image, confidence=0.85)
             if location is not None:
-                coords = pyautogui.center(location)
                 prev_spot = spot
-                spot = coords
+                spot = location
             if any_present(confirm_images):
                 break
         if any_present(confirm_images):
@@ -386,15 +488,20 @@ def wait_to_see(image):
         pass
 
 
+def wait_until_gone(image):
+    # function to pause execution until a particular image no longer appears
+    while is_present(image):
+        pass
+
+
 def click_image(image, delay=0.):
     # function to click an image on screen
     # returns false if image is not on screen
     # returns true if image is successfully clicked
     # will delay by given amount only if button found
-    spot = pyautogui.locateOnScreen(image, confidence=0.85)
-    if spot is None:
+    coords = pyautogui.locateCenterOnScreen(image, confidence=0.85)
+    if coords is None:
         return False
-    coords = pyautogui.center(spot)
     pyautogui.click(*coords)
     time.sleep(delay)
     return True
@@ -407,13 +514,20 @@ def wait_until_click(image):
 
 
 def shows_up(image, secs):
-    # return whether or not a particular image shows up on the screen in a given time interval
+    # return if a particular image shows up on the screen in a given time interval
     # if it shows up return the remaining amount of time left
     start = time.time()
     while time.time() < start + secs:
         if is_present(image):
             return start + secs - time.time()
     return False
+
+
+def is_loading():
+    # checks if the loading screen is being shown
+    screen = pyautogui.screenshot()
+    bbox = screen.getbbox()
+    return bool(bbox[2] - bbox[0] < screen.width/2 and bbox[3] - bbox[1] < screen.height/2)
 
 
 waiting = False
@@ -449,7 +563,7 @@ class ChooseOption:
         self.choice = None  # selected option
         goal_ratio = 2  # button width to height ratio to aim for
         button_num = 1 + len(options)
-        self.pos_finder = RatioFit(pyautogui.size(), 19 / 11, 0)  # initialize position finder
+        self.pos_finder = RatioFit(pyautogui.size(), 19/11, 0)  # initialize position finder
         self.root = tkinter.Tk()
         self.root.title(title)
         frame = tkinter.Frame(self.root)
@@ -463,9 +577,10 @@ class ChooseOption:
             button = tkinter.Button(frame, text=options[f], borderwidth=2,
                                     padx=5, pady=5, command=lambda x=f: self.choose(x))
             button.grid(row=1 + f//columns, column=f%columns, padx=5, pady=5)
-        button = tkinter.Button(frame, text="print mouse position", borderwidth=2,
-                                padx=5, pady=5, command=self.print_pos)
-        button.grid(row=1 + len(options)//columns, column=len(options)%columns, padx=5, pady=5)
+        self.print_button = tkinter.Button(frame, text="print mouse position", borderwidth=2,
+                                           padx=5, pady=5, command=self.position_info)
+        self.print_button.grid(row=1 + len(options)//columns, column=len(options)%columns, padx=5, pady=5)
+        self.toggle_pos = False
         frame.columnconfigure(tuple(range(columns)), weight=1)
         frame.rowconfigure(tuple(range(rows)), weight=1)
 
@@ -475,6 +590,13 @@ class ChooseOption:
 
     def get_choice(self):
         return self.choice
+
+    def display_pos(self):
+        while self.toggle_pos:
+            time.sleep(0.03)
+            position = self.pos_finder.revert_pos(pyautogui.position())
+            self.print_button['text'] = "({:.5f}, {:.5f})".format(*position)
+        self.print_button['text'] = "print mouse position"
 
     def print_pos(self):
         time.sleep(2)
@@ -488,13 +610,21 @@ class ChooseOption:
         time.sleep(2)
         print(self.pos_finder.revert_pos(pyautogui.position()))
 
+    def position_info(self):
+        self.toggle_pos = not self.toggle_pos
+        if self.toggle_pos:
+            newt = Thread(target=self.display_pos, daemon=True)
+            newt.start()
+        newt2 = Thread(target=self.print_pos, daemon=True)
+        newt2.start()
+
     def show(self):
         self.root.mainloop()
 
 
 def main():
     global waiting
-    # to get out, move mouse to the corner of the screen to trigger the fail safe
+    # to get out, move mouse to the corner of the screen to trigger the failsafe
     delay = 0.3
     screen = RatioFit(pyautogui.size(), 19/11, delay)
     # import menu options

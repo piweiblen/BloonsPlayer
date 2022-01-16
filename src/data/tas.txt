@@ -1,9 +1,10 @@
-"monkey meadow (easy) (quincy)" # option title
+"monkey meadow (easy) (quincy)" # title
 ("monkey meadow", "easy", "standard")  # choose map
 ("hero", (0.1, 0.5))  # place tower
 10  # delay
 ("sniper", (0.8, 0.43))
 (1, (2, 2, 1, 2, 1))  # upgrade tower
+(0, 1)  # upgrade hero once
 
 "tree stump (easy)"
 ("tree stump", "easy", "standard")
@@ -47,6 +48,7 @@
 "flooded valley (military only) (etienne)"
 ("flooded valley", "medium", "military only")
 ("hero", (0.385, 0.4))
+"repeat ability 1"  # repeatedly use etienne's first ability
 25
 ("boat", (0.5, 0.15))
 (1, (2, 2, 3, 3, 2))
@@ -59,3 +61,24 @@
 10
 ("boat", (0.59, 0.34))
 (4, (2, 2, 1, 1, 1, 1))
+
+"four circles (CHIMPS) (sauda)"
+("four circles", "hard", "chimps")
+("hero", (0.42, 0.5))
+30
+("sub", (0.3, 0.245))
+(1, (1, 2, 2, 1))
+40
+("village", (0.375, 0.36))
+(2, (1, 1))
+20
+("plane", (0.47, 0.35))
+(3, (1, 1, 1, 1, 3, 3))
+30
+(1, (1, 1, 1))
+(3, (1,))
+10
+("alchemist", (0.42, 0.18))
+(4, (1, 1, 1, 1, 2, 2))
+(2, (2, 2, 2))
+(0, 6)
