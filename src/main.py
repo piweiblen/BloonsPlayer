@@ -97,6 +97,10 @@ def hitkeys(keys, delay=0.001):
         time.sleep(delay)
 
 
+class BloonsError(Exception):
+    pass
+
+
 class RatioFit:
 
     def __init__(self, screen_size, ratio, delay):
@@ -248,6 +252,46 @@ class RatioFit:
         hitkeys(self.monkey_dict[monkey])
         self.click(position, delay=delay)
 
+    def get_numbers(self):
+        # return the amount of cash the player has as an integer
+        screen = pyautogui.screenshot()
+        top_left = self.convert_pos((0, 0))
+        bottom_right = self.convert_pos((1, 0.085))
+        cropped = screen.crop(top_left+bottom_right)
+        num_positions = []
+        for f in range(10):
+            num_image = self.image_dict['numbers %s' % f]
+            for spot in pyautogui.locateAll(num_image, cropped, confidence=0.7):
+                rel_spot = self.revert_pos(spot)
+                num_positions.append((rel_spot[0], f))
+        num_positions.sort()
+        current = ""
+        pool = {}
+        nums = []
+        for f in range(len(num_positions)):
+            digit = str(num_positions[f][1])
+            if not f:
+                difference = 0
+            else:
+                difference = num_positions[f][0] - num_positions[f-1][0]
+            if difference > 0.003:  # different digit, clear pool
+                current += max(pool, key=lambda x: pool[x])
+                pool = {}
+            # add digit to pool regardless
+            if digit in pool:
+                pool[digit] += 1
+            else:
+                pool[digit] = 1
+            if difference > 0.02:  # different number entirely, clear current
+                nums.append(int(current))
+                current = ""
+        # clean up
+        if pool:
+            current += max(pool, key=lambda x: pool[x])
+        if current:
+            nums.append(int(current))
+        return nums
+
     def ready_to_upgrade(self, path):
         # determines whether the selected monkey is ready to be upgraded into the specified path
         green = self.image_dict["buttons upgrade"]
@@ -263,8 +307,6 @@ class RatioFit:
     def ready_to_upgrade_hero(self):
         # determines whether a hero is ready to be upgraded
         green = self.image_dict["buttons hero upgrade"]
-        spots = list(pyautogui.locateAllOnScreen(green, confidence=0.9))
-        heights = [self.revert_pos(pyautogui.center(f))[1] for f in spots]
         spot = pyautogui.locateOnScreen(green, confidence=0.9)
         if spot is None:
             return False
@@ -286,7 +328,7 @@ class RatioFit:
                 num = len(path)
             for f in range(num):
                 while not self.ready_to_upgrade_hero():
-                    if self.check_for_level_up():
+                    if self.check_edge_cases():
                         pyautogui.click(*position)
                 time.sleep(delay)
                 hitkeys(self.upgrade_dict[1])
@@ -297,7 +339,7 @@ class RatioFit:
                 path = [path]
             for p in path:
                 while not self.ready_to_upgrade(p):
-                    if self.check_for_level_up():
+                    if self.check_edge_cases():
                         pyautogui.click(*position)
                 time.sleep(delay)
                 hitkeys(self.upgrade_dict[p])
@@ -310,9 +352,14 @@ class RatioFit:
         # WILL overwrite saves
         play_button = self.image_dict["buttons play"]
         wait_and_static_click(play_button)
+        arrow_count = 0
         while not self.click_fixed("tracks %s" % track):
             if not self.click_fixed("buttons track switch"):
                 click_image(play_button)
+            else:
+                arrow_count += 1
+            if arrow_count > 3*11:
+                time.sleep(3)
         wait_until_click(self.image_dict["buttons %s" % difficulty])
         wait_until_click(self.image_dict["buttons %s" % mode])
         if shows_up(self.image_dict["edge cases overwrite"], 0.5):
@@ -332,32 +379,63 @@ class RatioFit:
             pass
         time.sleep(self.delay)
 
-    def check_for_level_up(self):
-        # function checks if you've leveled up and handles it
+    def check_edge_cases(self):
+        # function checks for and handles various edge cases
+        # first check if we've leveled up
         if click_image(self.image_dict["edge cases LEVEL UP"]):
             if shows_up(self.image_dict["edge cases monkey knowledge"], 1):
                 click_image(self.image_dict["edge cases monkey knowledge"])
             time.sleep(self.delay)
             hitkeys(' ')
             return True
+        # then check for tas failure
+        if is_present(self.image_dict["edge cases restart"]):
+            wait_until_click(self.image_dict["buttons home"])
+            raise BloonsError("TAS Failed")
         return False
 
-    def wait_and_check_level(self, secs):
+    def wait_and_check_edges(self, secs):
         # function waits a given amount of time, and regularly check if you've leveled up
-        if time_left := shows_up(self.image_dict["edge cases LEVEL UP"], secs):
-            wait_until_click(self.image_dict["edge cases LEVEL UP"])
-            if shows_up(self.image_dict["edge cases monkey knowledge"], 1):
-                click_image(self.image_dict["edge cases monkey knowledge"])
-            time.sleep(self.delay)
-            hitkeys(' ')
-            time.sleep(time_left)
+        start = time.time()
+        while time.time() < start + secs:
+            self.check_edge_cases()
+
+    def wait_for_lives(self, lives):
+        # wait for amount of lives to drop to or below given number
+        while 1:
+            nums = self.get_numbers()
+            if len(nums) < 1:
+                continue
+            if nums[0] < lives:
+                break
+            self.check_edge_cases()
+
+    def wait_for_cash(self, money):
+        # wait for amount of lives to drop to or below given number
+        while 1:
+            nums = self.get_numbers()
+            if len(nums) < 2:
+                continue
+            if nums[1] >= money:
+                break
+            self.check_edge_cases()
+
+    def wait_for_round(self, round_num):
+        # wait for amount of lives to drop to or below given number
+        while 1:
+            nums = self.get_numbers()
+            if len(nums) < 3:
+                continue
+            if nums[2] > round_num:
+                break
+            self.check_edge_cases()
 
     def wait_to_finish(self):
         # waits for the round to finish, then goes to the home screen
         next_but = self.image_dict["buttons NEXT"]
         while not is_present(next_but):
             click_image(self.image_dict["buttons insta-monkey"])  # for chimps/impoppable
-            self.check_for_level_up()
+            self.check_edge_cases()
         time.sleep(self.delay)
         wait_until_click(next_but)
         self.cancel_repeat_keys()
@@ -389,7 +467,7 @@ class RatioFit:
 
     def do_command(self, command):
         if type(command) == int:
-            self.wait_and_check_level(command)  # delay
+            self.wait_and_check_edges(command)  # delay
         elif type(command) == tuple:
             if type(command[0]) == str and type(command[1]) == str:
                 self.open_track(*command)  # choose map
@@ -403,9 +481,20 @@ class RatioFit:
             re_ability_pre = "repeat ability "
             if command.startswith(re_ability_pre):
                 self.add_repeat_key(command[len(re_ability_pre):])
+            if command == "cancel repeat abilities":
+                self.cancel_repeat_keys()
             ability_pre = "ability "
             if command.startswith(ability_pre):
                 hitkeys([command[len(ability_pre):]])
+            lives_pre = "lives "
+            if command.startswith(lives_pre):
+                self.wait_for_lives(int(command[len(lives_pre):]))
+            money_pre = "money "
+            if command.startswith(money_pre):
+                self.wait_for_cash(int(command[len(money_pre):]))
+            round_pre = "round "
+            if command.startswith(round_pre):
+                self.wait_for_round(int(command[len(round_pre):]))
 
     def play(self, parameters):
         log('\n' + str(parameters[0]))
@@ -420,7 +509,8 @@ class RatioFit:
         for command in parameters[2:]:
             log('\n' + str(command))
             self.do_command(command)
-        log('\n' + 'Waiting for track to finish')
+        log('\n' + 'Waiting for track to finish, ')
+        log(time.strftime("%m/%d/%Y, %H:%M:%S"))
         self.wait_to_finish()
 
 
@@ -534,10 +624,6 @@ def is_loading():
     return bool(black/pixel_count > 0.5)
 
 
-waiting = False
-log_txt = ""
-
-
 def log_path():
     # get path to log file
     try:
@@ -552,12 +638,16 @@ def log_path():
     return os.path.join(base_path, "log.txt")
 
 
-def log(txt):
-    # function which handles logfile output
-    global log_txt
-    log_txt += txt
+def clear_log():
+    # empty the log file
     file = open(log_path(), 'w')
-    file.write(log_txt)
+    file.close()
+
+
+def log(txt):
+    # add the given text to the log file
+    file = open(log_path(), 'a')
+    file.write(txt)
     file.close()
 
 
@@ -589,6 +679,8 @@ class ChooseOption:
         frame.rowconfigure(tuple(range(rows)), weight=1)
 
     def choose(self, choice):
+        self.toggle_pos = False
+        time.sleep(0.06)
         self.choice = choice
         self.root.destroy()
 
@@ -627,7 +719,7 @@ class ChooseOption:
 
 
 def main():
-    global waiting
+    clear_log()
     # to get out, move mouse to the corner of the screen to trigger the failsafe
     delay = 0.3
     screen = RatioFit(pyautogui.size(), 19/11, delay)
@@ -656,6 +748,8 @@ def main():
             screen.play(plays[choice])
         except Exception as e:
             log('\n' + repr(e))
+            if type(e) == BloonsError:
+                continue
             raise
 
 
