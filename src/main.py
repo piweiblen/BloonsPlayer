@@ -8,8 +8,32 @@ import math
 import time
 import sys
 import os
+user32 = ctypes.WinDLL('user32', use_last_error=True)
 
-# --- keyboard input initialization ---
+# --- window focus ---
+WNDENUMPROC = ctypes.WINFUNCTYPE(wintypes.BOOL, wintypes.HWND, wintypes.LPARAM)
+
+_enum_windows = user32.EnumWindows
+_enum_windows.argtypes = (WNDENUMPROC, wintypes.LPARAM)
+_enum_windows.restype = wintypes.BOOL
+
+def bring_to_front(window_name):
+    hwnds = []
+    def windowEnumerationHandler(hwnd, lparam):
+        hwnds.append(hwnd)
+        return True
+    func = WNDENUMPROC(windowEnumerationHandler)
+    _enum_windows(func, 0)
+    for hwnd in hwnds:
+        length = user32.GetWindowTextLengthW(hwnd)
+        buff_text = ctypes.create_unicode_buffer(length + 1)
+        user32.GetWindowTextW(hwnd, buff_text, length + 1)
+        if window_name == buff_text.value:
+            user32.ShowWindow(hwnd, 5)
+            user32.SetForegroundWindow(hwnd)
+            break
+
+# --- keyboard input ---
 user32 = ctypes.WinDLL('user32', use_last_error=True)
 INPUT_MOUSE    = 0
 INPUT_KEYBOARD = 1
@@ -64,15 +88,18 @@ user32.SendInput.errcheck = _check_count
 user32.SendInput.argtypes = (wintypes.UINT, # nInputs
                              LPINPUT,       # pInputs
                              ctypes.c_int)  # cbSize
+
 def presskey(hexKeyCode):
     x = INPUT(type=INPUT_KEYBOARD,
               ki=KEYBDINPUT(wVk=hexKeyCode))
     user32.SendInput(1, ctypes.byref(x), ctypes.sizeof(x))
+
 def releasekey(hexKeyCode):
     x = INPUT(type=INPUT_KEYBOARD,
               ki=KEYBDINPUT(wVk=hexKeyCode,
                             dwFlags=KEYEVENTF_KEYUP))
     user32.SendInput(1, ctypes.byref(x), ctypes.sizeof(x))
+
 chrhex = {'a':0x41, 'b':0x42, 'c':0x43, 'd':0x44, 'e':0x45, 'f':0x46, 'g':0x47, 'h':0x48, 'i':0x49,
           'j':0x4A, 'k':0x4B, 'l':0x4C, 'm':0x4D, 'n':0x4E, 'o':0x4F, 'p':0x50, 'q':0x51, 'r':0x52,
           's':0x53, 't':0x54, 'u':0x55, 'v':0x56, 'w':0x57, 'x':0x58, 'y':0x59, 'z':0x5A, 'A':0x41,
@@ -81,12 +108,13 @@ chrhex = {'a':0x41, 'b':0x42, 'c':0x43, 'd':0x44, 'e':0x45, 'f':0x46, 'g':0x47, 
           'T':0x54, 'U':0x55, 'V':0x56, 'W':0x57, 'X':0x58, 'Y':0x59, 'Z':0x5A, ' ':0x20, '1':0x31,
           '2':0x32, '3':0x33, '4':0x34, '5':0x35, '6':0x36, '7':0x37, '8':0x38, '9':0x39, '0':0x30,
           'enter':0x0D, 'back':0x08, 'left':0x25, 'up':0x26, 'right':0x27, 'down':0x28, 'ctrl':0x11,
-          'shift':0x10, 'tab':0x09, 'Capital':0x14, '\\':0xDC, ';':0xBA, '\r':0x0D, '\x08':0x08,
-          'Lcontrol': 0xA2, 'Rcontrol': 0xA3, 'Lmenu': 0xA4, 'Rmenu': 0xA5, 'Lwin': 0x5B,
-          'Rwin': 0x5C, 'Oem_3': 0xC0, '`': 0xC0, 'volume_mute': 0xAD, 'volume_down': 0xAE,
-          'volume_up': 0xAF, 'media_next': 0xB0, 'media_prev':0xB1, 'media_pause': 0xB3,
-          'apps': 0x5D, 'snapshot': 0x2C, 'delete': 0x2E, 'Lshift': 0xA0, 'Rshift': 0xA1,
-          'pause': 0x13, 'space':0x20, 'escape':0x1B, '.':0xBE, ',':0xBC, '/':0xBF}
+          'shift':0x10, 'tab':0x09, 'capital': 0x14, '\\': 0xDC, ';': 0xBA, '\r': 0x0D, '\x08': 0x08,
+          'lcontrol': 0xA2, 'Rcontrol': 0xA3, 'lmenu': 0xA4, 'rmenu': 0xA5, 'lwin': 0x5B,
+          'rwin': 0x5C, 'oem_3': 0xC0, '`': 0xC0, 'volume_mute': 0xAD, 'volume_down': 0xAE,
+          'volume_up': 0xAF, 'media_next': 0xB0, 'media_prev': 0xB1, 'media_pause': 0xB3,
+          'apps': 0x5D, 'snapshot': 0x2C, 'delete': 0x2E, 'lshift': 0xA0, 'rshift': 0xA1,
+          'pause': 0x13, 'space': 0x20, 'escape': 0x1B, '.': 0xBE, ',': 0xBC, '/': 0xBF,
+          'page_up': 0x21, 'page_down': 0x22}
 
 
 def hitkeys(keys, delay=0.001):
@@ -97,6 +125,7 @@ def hitkeys(keys, delay=0.001):
         time.sleep(delay)
 
 
+# --- keyboard input ---
 class BloonsError(Exception):
     pass
 
@@ -155,6 +184,7 @@ class RatioFit:
         self.monkeys_placed = []
         self.abilities_repeat = []
         self.ab_repeat_on = False
+        self.screen_shot = False
         # open and convert all images
         self.image_pos_dict = {}
         self.image_dict = {}
@@ -189,6 +219,9 @@ class RatioFit:
                 hitkeys([key])
                 time.sleep(1/current_num)
 
+    def set_screen_shot(self, set_val):
+        self.screen_shot = set_val
+
     def add_repeat_key(self, key):
         key = str(key)
         if key in self.abilities_repeat:
@@ -214,7 +247,7 @@ class RatioFit:
             img = img.resize((int(img.width * self.image_ratio), int(img.height * self.image_ratio)))
         return img
 
-    def click_fixed(self, image_name):
+    def click_fixed(self, image_name, confidence=0.85):
         # high performance way to click an image which only ever appears in one location on screen
         # return true if clicked, return false if not present
         image = self.image_dict[image_name]
@@ -224,13 +257,13 @@ class RatioFit:
             h = image.height * 11 // 10
             region = (known_pos[0] - w//2, known_pos[1] - h//2, w, h)
             section = pyautogui.screenshot(region=region)
-            if pyautogui.locate(image, section, confidence=0.85) is not None:
+            if pyautogui.locate(image, section, confidence=confidence) is not None:
                 pyautogui.click(*known_pos)
                 return True
             else:
                 return False
         else:
-            location = pyautogui.locateCenterOnScreen(image, confidence=0.85)
+            location = pyautogui.locateCenterOnScreen(image, confidence=confidence)
             if location is not None:
                 self.image_pos_dict[image_name] = location
                 pyautogui.click(*location)
@@ -249,6 +282,7 @@ class RatioFit:
         # place the specified monkey at the specified position
         monkey = monkey.lower()
         self.monkeys_placed.append((monkey, position))
+        bring_to_front('BloonsTD6')
         hitkeys(self.monkey_dict[monkey])
         self.click(position, delay=delay)
 
@@ -320,6 +354,7 @@ class RatioFit:
         # this function simply waits until you have enough money to do so
         log(": ")
         position = self.convert_pos(self.monkeys_placed[monkey_index][1])
+        bring_to_front('BloonsTD6')
         pyautogui.click(*position)  # select monkey
         if self.monkeys_placed[monkey_index][0] == "hero":
             if type(path) == int:
@@ -331,6 +366,7 @@ class RatioFit:
                     if self.check_edge_cases():
                         pyautogui.click(*position)
                 time.sleep(delay)
+                bring_to_front('BloonsTD6')
                 hitkeys(self.upgrade_dict[1])
                 log(self.upgrade_dict[1])
                 time.sleep(delay)
@@ -342,9 +378,11 @@ class RatioFit:
                     if self.check_edge_cases():
                         pyautogui.click(*position)
                 time.sleep(delay)
+                bring_to_front('BloonsTD6')
                 hitkeys(self.upgrade_dict[p])
                 log(self.upgrade_dict[p])
                 time.sleep(delay)
+        bring_to_front('BloonsTD6')
         hitkeys(['escape'])
 
     def open_track(self, track, difficulty, mode):
@@ -359,7 +397,11 @@ class RatioFit:
             else:
                 arrow_count += 1
             if arrow_count > 3*11:
-                time.sleep(3)
+                # we've scrolled the whole menu 3 times, start taking our time
+                if self.click_fixed("tracks %s" % track, confidence=0.6):
+                    time.sleep(1)
+                    if is_present(self.image_dict["buttons %s" % difficulty]):
+                        break
         wait_until_click(self.image_dict["buttons %s" % difficulty])
         wait_until_click(self.image_dict["buttons %s" % mode])
         if shows_up(self.image_dict["edge cases overwrite"], 0.5):
@@ -390,6 +432,14 @@ class RatioFit:
             return True
         # then check for tas failure
         if is_present(self.image_dict["edge cases restart"]):
+            if self.screen_shot:
+                wait_until_click(self.image_dict["edge cases review"])
+                time.sleep(1)
+                cur_time = time.strftime("%m-%d-%Y-%H-%M-%S")
+                log("\nScreenshot taken "+cur_time)
+                pyautogui.screenshot(os.path.join(log_dir(), cur_time+".png"))
+                hitkeys(["escape"])
+            self.cancel_repeat_keys()
             wait_until_click(self.image_dict["buttons home"])
             raise BloonsError("TAS Failed")
         return False
@@ -411,7 +461,7 @@ class RatioFit:
             self.check_edge_cases()
 
     def wait_for_cash(self, money):
-        # wait for amount of lives to drop to or below given number
+        # wait for amount of cash to reach given number
         while 1:
             nums = self.get_numbers()
             if len(nums) < 2:
@@ -421,12 +471,12 @@ class RatioFit:
             self.check_edge_cases()
 
     def wait_for_round(self, round_num):
-        # wait for amount of lives to drop to or below given number
+        # wait to reach given round
         while 1:
             nums = self.get_numbers()
             if len(nums) < 3:
                 continue
-            if nums[2] > round_num:
+            if nums[2] >= round_num:
                 break
             self.check_edge_cases()
 
@@ -466,7 +516,7 @@ class RatioFit:
             hitkeys(['escape'])
 
     def do_command(self, command):
-        if type(command) == int:
+        if type(command) in (int, float):
             self.wait_and_check_edges(command)  # delay
         elif type(command) == tuple:
             if type(command[0]) == str and type(command[1]) == str:
@@ -497,6 +547,7 @@ class RatioFit:
                 self.wait_for_round(int(command[len(round_pre):]))
 
     def play(self, parameters):
+        self.monkeys_placed = []  # clear out monkey list
         log('\n' + str(parameters[0]))
         self.do_command(parameters[0])  # should start the track
         log('\n' + str(parameters[1]))
@@ -512,6 +563,9 @@ class RatioFit:
         log('\n' + 'Waiting for track to finish, ')
         log(time.strftime("%m/%d/%Y, %H:%M:%S"))
         self.wait_to_finish()
+
+    def kill_threads(self):
+        self.cancel_repeat_keys()
 
 
 def resource_path(relative_path):
@@ -586,8 +640,7 @@ def wait_until_gone(image):
 
 def click_image(image, delay=0.):
     # function to click an image on screen
-    # returns false if image is not on screen
-    # returns true if image is successfully clicked
+    # returns boolean indicating if image was found
     # will delay by given amount only if button found
     coords = pyautogui.locateCenterOnScreen(image, confidence=0.85)
     if coords is None:
@@ -624,8 +677,8 @@ def is_loading():
     return bool(black/pixel_count > 0.5)
 
 
-def log_path():
-    # get path to log file
+def log_dir():
+    # get path to log directory
     try:
         # PyInstaller creates a temp folder and stores path in _MEIPASS
         # for log file we want to move up one directory to avoid immediate deletion upon program exit
@@ -635,18 +688,24 @@ def log_path():
         base_path = os.path.abspath(".")
         base_path = os.path.join(base_path, "data\\")
 
-    return os.path.join(base_path, "log.txt")
+    return os.path.join(base_path, "log\\")
+
+
+def log_file():
+    # get path to log file
+    return os.path.join(log_dir(), "log.txt")
 
 
 def clear_log():
     # empty the log file
-    file = open(log_path(), 'w')
+    os.makedirs(log_dir(), exist_ok=True)
+    file = open(log_file(), 'w')
     file.close()
 
 
 def log(txt):
     # add the given text to the log file
-    file = open(log_path(), 'a')
+    file = open(log_file(), 'a')
     file.write(txt)
     file.close()
 
@@ -658,8 +717,21 @@ class ChooseOption:
         goal_ratio = 2  # button width to height ratio to aim for
         button_num = 1 + len(options)
         self.pos_finder = RatioFit(pyautogui.size(), 19/11, 0)  # initialize position finder
+        # create root
         self.root = tkinter.Tk()
         self.root.title(title)
+        # create menu bar
+        menu_bar = tkinter.Menu(self.root)
+        file_menu = tkinter.Menu(menu_bar, tearoff=0)
+        file_menu.add_command(label="Exit", command=self.root.quit)
+        menu_bar.add_cascade(label="File", menu=file_menu)
+        option_menu = tkinter.Menu(menu_bar, tearoff=0)
+        self.screen_shot = tkinter.BooleanVar(self.root, False)
+        option_menu.add_checkbutton(label="Take Screenshot On Failure", onvalue=1, offvalue=0,
+                                    variable=self.screen_shot)
+        menu_bar.add_cascade(label="Options", menu=option_menu)
+        self.root.config(menu=menu_bar)
+        # create buttons
         frame = tkinter.Frame(self.root)
         self.root.rowconfigure(0, weight=1)
         self.root.columnconfigure(0, weight=1)
@@ -677,6 +749,9 @@ class ChooseOption:
         self.toggle_pos = False
         frame.columnconfigure(tuple(range(columns)), weight=1)
         frame.rowconfigure(tuple(range(rows)), weight=1)
+
+    def get_ss(self):
+        return self.screen_shot.get()
 
     def choose(self, choice):
         self.toggle_pos = False
@@ -721,25 +796,25 @@ class ChooseOption:
 def main():
     clear_log()
     # to get out, move mouse to the corner of the screen to trigger the failsafe
-    delay = 0.3
-    screen = RatioFit(pyautogui.size(), 19/11, delay)
+    screen = RatioFit(pyautogui.size(), 19/11, 0.3)
     # import menu options
-    file = open(resource_path("data\\tas.txt"))
-    raw_data = file.read()
-    file.close()
     option_names = []
     plays = []
-    for datum in raw_data.split("\n\n"):
-        data = datum.split('\n')
-        option_names.append(eval(data[0]))
-        plays.append(tuple(eval(d) for d in data[1:]))
+    base_path = resource_path("data\\tas\\")
+    for tas in os.listdir(base_path):
+        option_names.append(tas[:tas.find('.')])
+        file = open(os.path.join(base_path, tas))
+        data = file.read().split('\n')
+        file.close()
+        plays.append(tuple(eval(d) for d in data))
     # print log file path
     print('Log file located at:')
-    print(log_path())
+    print(log_file())
     # get track choice
     chooser = ChooseOption('BTD6 bot ready', 'Choose which map to play repeatedly', option_names)
     chooser.show()
     choice = chooser.get_choice()
+    screen.set_screen_shot(chooser.get_ss())
     del chooser
     # start main loop
     mainloop = True
@@ -751,6 +826,8 @@ def main():
             if type(e) == BloonsError:
                 continue
             raise
+        finally:
+            screen.kill_threads()
 
 
 if __name__ == "__main__":

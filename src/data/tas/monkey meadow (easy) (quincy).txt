@@ -1,0 +1,7 @@
+"monkey meadow (easy) (quincy)" # title
+("monkey meadow", "easy", "standard")  # choose map
+("hero", (0.1, 0.5))  # place tower
+10  # delay
+("sniper", (0.8, 0.43))
+(1, (2, 2, 1, 2, 1))  # upgrade tower
+(0, 1)  # upgrade hero once
