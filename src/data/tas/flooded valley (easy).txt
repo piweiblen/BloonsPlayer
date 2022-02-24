@@ -1,6 +1,6 @@
-("flooded valley", "easy", "standard")
-('boat', (0.5, 0.15))
-(0, (2, 2, 3, 3, 2))
-"money 405"
-('boat', (0.53, 0.75))
-(1, (2, 2, 1, 1, 1, 1))
+open flooded valley, easy, standard
+place boat, (0.584, 0.15), cannon
+upgrade cannon, 2, 2, 3, 3, 2
+money 405
+place boat, (0.619, 0.75), carrier
+upgrade carrier, 2, 2, 1, 1, 1, 1

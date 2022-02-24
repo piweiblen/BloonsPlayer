@@ -1,9 +1,9 @@
-("the cabin", "easy", "standard")
-("boomerang", (0.6, 0.28))
-(0, (3, 3, 1, 1, 1, 1))
-10
-("sub", (0.54, 0.28))
-(1, (1, 1, 1))
-7
-("boomerang", (0.6, 0.12))
-(2, (2, 2, 3, 3, 3, 3))
+open the cabin, easy, standard
+place boomerang, (0.7, 0.28), boomer
+upgrade boomer, 3, 3, 1, 1, 1, 1
+money 200
+place sub, (0.631, 0.28), camo
+upgrade camo, 1, 1, 1
+money 230
+place boomerang, (0.7, 0.12), boomer2
+upgrade boomer2, 2, 2, 3, 3, 3, 3

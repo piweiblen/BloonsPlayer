@@ -1,0 +1,9 @@
+open logs, hard, chimps
+place wizard, (0.353, 0.64), prince
+upgrade prince, 2, 3, 2, 3
+money 865
+place plane, (0.492, 0.64), shredder
+target shredder, 1
+upgrade shredder, 3, 1, 1, 1, 1
+upgrade prince, 3, 3, 3
+upgrade shredder, 1

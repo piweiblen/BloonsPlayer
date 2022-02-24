@@ -1,9 +1,9 @@
-("town center", "easy", "standard")
-("dart", (0.26, 0.78))
-(0, (3, 3, 3, 3, 2, 2))
-15
-("dart", (0.18, 0.47))
-(1, (1, 1, 1, 1, 2, 2))
-15
-("dart", (0.12, 0.65))
-(2, (3, 3, 3, 3, 2, 2))
+open town center, easy, standard
+place dart, (0.307, 0.78), cross
+upgrade cross, 3, 3, 3, 3, 2, 2
+money 200
+place dart, (0.214, 0.47), jugger
+upgrade jugger, 1, 1, 1, 1, 2, 2
+money 200
+place dart, (0.144, 0.65), cross2
+upgrade cross2, 3, 3, 3, 3, 2, 2

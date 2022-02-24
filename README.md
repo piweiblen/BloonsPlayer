@@ -22,21 +22,23 @@ The script file name is interpreted as the title of that particular script.
 
 
 ##Command overview
-All commands are evaluated as python expressions and should thus be written with valid python syntax.
+All commands follow the format of a command word followed by command arguments.
+Anything after a # sign in the command will be ignored.
+The arguments of each command should be separated by commas, parentheses and spaces will not affect the arguments.
 Commands are not case-sensitive.
-The first command must be a tuple of three strings which should be the track name, difficulty, and mode respectively. 
+The first command must be top open the track with arguments of track name, difficulty, and mode respectively. 
 The second command and onward do not have special requirements, 
-but it should be noted that after the second command is executed the tas will begin the track, 
+but it should be noted that after the second command is executed the tas will start the game, 
 meaning usually the second command will be to place a tower that can be immediately afforded.
 
 ##Command examples
 The following is a comprehensive list of the types of commands and how they are used. 
 See also the tas directory for more examples.
 
-###First command
-The first command should follow the following format.
-```python
-("monkey meadow", "easy", "standard")  # specify map, difficulty, and mode to open
+###First command, opening the track
+The first command should be the "open" command and should follow the following format.
+```
+open monkey meadow, easy, standard  # specify map, difficulty, and mode to open
 ```
 The valid course names are:
 * \#ouch
@@ -119,16 +121,15 @@ And the valid course modes are:
 * standard
 
 ###Placing a tower
-The command to place a tower is a tuple with two elements, 
-the first element is the name of the tower in a string, 
-the second element is the relative placement coordinates. 
-The coordinates should be a tuple of two floats between 0 and 1, for the x and y position. 
+The "place" command is used to place a tower. The arguments are: the type of tower, 
+the relative placement coordinates, and a unique name for the monkey which will be used in later commands.
+The coordinates should be two floats between 0 and 1, for the x and y position. 
 To find these coordinates reliably, use the print mouse position button in the BloonsPlayer menu. 
 Note also that placement commands do not wait and a delay must often be used to ensure sufficient funds.
-```python
-("spikes", (0.43, 0.33))  # place a spike factory at (0.43, 0.33)
 ```
-The valid tower names are:
+place spikes, (0.43, 0.33), first spikes  # place a spike factory at (0.43, 0.33)
+```
+The valid tower types are:
 * "hero": whichever hero is selected
 * "dart": dart monkey
 * "boomerang": boomerang monkey
@@ -159,43 +160,73 @@ Time delays wait the given amount of time in seconds, the syntax is an integer o
 Money delays wait until you have a given amount of cash, the syntax is "money \<number>". 
 Round delays wait until you reach the given round, the syntax is "round \<number>". 
 Life delays wait until you drop to a certain number of lives, the syntax is "lives \<number>".
-```python
-10  # delay ten seconds
-"money 1200"  # wait until cash reaches $1200
-"round 22"  # wait until round 22
-"lives 100"  # wait until lives drop to 100
+```
+delay 10  # delay ten seconds
+money 1200  # wait until cash reaches $1200
+round 22  # wait until round 22
+lives 100  # wait until lives drop to 100
 ```
 
 ###Upgrades
-The command to upgrade a tower is a tuple with two elements. 
-The first element is the integer of the tower to upgrade, towers are indexed starting at 0.
-The second element is a tuple of the paths to upgrade. 
+The "upgrade" command upgrades a given tower. 
+The first argument is the name of the tower to upgrade which will have been specified in the "place" command.
+The next arguments are integers specifying which paths to upgrade, 1 being top, 2 middle, and 3 bottom. 
 Unlike tower placement, this function does not require other delay functions 
 and will automatically wait until you have enough money to buy a particular upgrade. 
-Note that heroes are upgraded in the same way, but the path does not matter.
-```python
-(0, (2, 2, 1, 1, 1, 1))  # upgrade our spike factory to spiked mines with even faster production
+Note that heroes are upgraded in the same way, except the number of times upgraded can be specified by the number of 
+arguments, or if there's one argument the value of the argument.
+```
+money 1200
+place spikes, (0.43, 0.33), first spikes
+upgrade first spikes, 2, 2, 1, 1, 1, 1  # upgrade our spike factory to spiked mines with even faster production
+```
+
+###Changing targeting
+The "target" command changes the targeting of the given tower. 
+The first argument should be the name of the tower to change.
+The second argument should be the number of times to change the targeting, 
+note that this is equivalent to hitting the right arrow button. 
+In the case of the mortar tower, a position must also be specified.
+In the case of the dartling gunner, a position may also be specified when using locked targeting.
+```
+target dartName, 3  # set dart monkey to strong
+target mortarName, 1, (0.43, 0.33)  # change position of mortar target
+target dartlingName, 0, (0.43, 0.33)  # change position of dartling gunner
 ```
 
 ###Activated abilities
-There are three commands regarding activating abilities. 
-The ability command simply activates the given ability once. 
-The repeat ability command will repeat the given ability once every second until the round ends.
-The cancel repeat abilities command cancels all currently repeated abilities.
+There are four commands regarding activating abilities. 
+The "use ability" command simply activates the given ability once. 
+The "repeat ability" command will repeat the given ability once every second until the round ends.
+The "stop ability" command cancels all currently repeated abilities.
+The "stop all abilities" command cancels all currently repeated abilities.
 The command will simply press the key it is given, 
 so this command can be used for keys other than abilities. 
 The default ability hotkeys are "1234567890-=".
-```python
-"ability 2"  # use the second ability in the list
-"repeat ability 1"  # repeatedly use the first ability in the list
-20  # delay twenty seconds
-"cancel repeat abilities"  # cancel the repeated ability use
+```
+use ability 2  # use the second ability in the list
+repeat ability 1  # repeatedly use the first ability in the list
+delay 20  # delay twenty seconds
+stop ability 2  # cancel repeated use of ability 2
+stop all abilities  # cancel all repeated ability use
+```
+
+###Changing priority
+The "priority" command changes the target priority of the given tower. 
+This is the camo target priority option that some monkeys have and the plane flight direction option.
+```
+priority planeName
+```
+
+###Selling a tower
+The "sell" command sells the tower specified by its name.
+```
+sell first spikes
 ```
 
 ###Click
-The last type of command is to simply click at the specified location. 
-The syntax of this command is simply a tuple of two floats which are coordinates. 
-This can be used to activate map gimmicks, change targeting, or anything really.
-```python
-(0.13, 0.37)  # click at (0.13, 0.37)
+The "click" command simply clicks at the given relative coordinates.
+This can be used to activate map gimmicks, or anything really.
+```
+click (0.13, 0.37)  # click at (0.13, 0.37)
 ```

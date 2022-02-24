@@ -1,7 +1,6 @@
-"monkey meadow (easy) (quincy)" # title
-("monkey meadow", "easy", "standard")  # choose map
-("hero", (0.1, 0.5))  # place tower
-10  # delay
-("sniper", (0.8, 0.43))
-(1, (2, 2, 1, 2, 1))  # upgrade tower
-(0, 1)  # upgrade hero once
+open monkey meadow, easy, standard  # choose map
+place hero, (0.121, 0.5), quincy  # place tower
+money 200
+place sniper, (0.932, 0.43), bouncer
+upgrade bouncer, 2, 2, 1, 2, 1  # upgrade tower
+upgrade quincy, 1  # upgrade hero once
