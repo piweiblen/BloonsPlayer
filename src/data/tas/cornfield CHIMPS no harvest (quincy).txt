@@ -1,0 +1,48 @@
+open cornfield, hard, chimps, quincy
+place hero, (0.451, 0.442), quincy
+round 7
+upgrade quincy, 1
+money 540
+place ninja, (0.56875, 0.70000), weak
+upgrade weak, 1, 3, 3, 1
+money 390
+use ability 1
+money 1630
+use ability 1
+money 1730
+place heli, (0.521, 0.471), primo
+upgrade primo, 1, 1
+money 600
+place alchemist, (0.45115, 0.49820), chemist
+target chemist, 3
+upgrade primo, 1, 2, 2
+upgrade chemist, 1, 1, 1, 1, 3
+upgrade primo, 1
+money 1300
+place village, (0.46020, 0.57477), mib
+upgrade mib, 1, 1
+money 20700
+use ability 1
+money 39100
+use ability 1
+round 76
+delay 1
+use ability 2
+money 45300
+repeat ability 1
+repeat ability 2
+upgrade primo, 1
+upgrade mib, 2, 2, 2
+money 1100
+place spikes, (0.53317, 0.58108), perma
+upgrade perma, 3, 3
+target perma, 1
+upgrade perma, 2, 2, 3, 3, 3
+money 540
+place ninja, (0.38964, 0.30541), sabo
+upgrade sabo, 2, 2, 2, 2
+repeat ability 3
+money 380
+place sniper, (0.43005, 0.92523), maim
+target maim, 1
+upgrade maim, 3, 3, 1, 1, 1, 1

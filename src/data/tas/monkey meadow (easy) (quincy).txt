@@ -1,4 +1,4 @@
-open monkey meadow, easy, standard  # choose map
+open monkey meadow, easy, standard, quincy  # choose map
 place hero, (0.121, 0.5), quincy  # place tower
 money 200
 place sniper, (0.932, 0.43), bouncer

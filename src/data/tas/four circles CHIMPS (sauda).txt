@@ -1,4 +1,4 @@
-open four circles, hard, chimps
+open four circles, hard, chimps, sauda
 place hero, (0.492, 0.5), sauda
 money 350
 place sub, (0.353, 0.245), energy

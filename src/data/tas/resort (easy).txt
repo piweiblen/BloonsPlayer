@@ -1,0 +1,7 @@
+open resort, easy, standard
+place glue, (0.80152, 0.21351), solver
+upgrade solver, 1, 1, 2
+money 1220
+place sub, (0.68393, 0.20541), sonar
+upgrade sonar, 1, 1, 1
+upgrade solver, 1, 2, 1

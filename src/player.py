@@ -1,8 +1,9 @@
 import pyautogui
-from threading import Thread
+import threading
 import ctypes
 from ctypes import wintypes
 from PIL import Image
+import shutil
 import time
 import sys
 import os
@@ -63,8 +64,7 @@ class KEYBDINPUT(ctypes.Structure):
         # some programs use the scan code even if KEYEVENTF_SCANCODE
         # isn't set in dwFflags, so attempt to map the correct code.
         if not self.dwFlags & KEYEVENTF_UNICODE:
-            self.wScan = user32.MapVirtualKeyExW(self.wVk,
-                                                 MAPVK_VK_TO_VSC, 0)
+            self.wScan = user32.MapVirtualKeyExW(self.wVk, MAPVK_VK_TO_VSC, 0)
 class HARDWAREINPUT(ctypes.Structure):
     _fields_ = (("uMsg",    wintypes.DWORD),
                 ("wParamL", wintypes.WORD),
@@ -104,17 +104,50 @@ def resource_path(relative_path):
     try:
         # PyInstaller creates a temp folder and stores path in _MEIPASS
         base_path = sys._MEIPASS
-    except Exception:
+    except AttributeError:
+        # _MEIPASS does not exist when running python code
         base_path = os.path.abspath(".")
 
     return os.path.join(base_path, relative_path)
 
 
+def data_dir():
+    """ Get absolute path to data, points to a folder in AppData/Roaming for the executable """
+    try:
+        # PyInstaller creates a temp folder and stores path in _MEIPASS
+        exe_path = os.path.join(sys._MEIPASS, "data")
+        app_path = os.path.join(os.getenv('APPDATA'), "BloonsPlayer", "data")
+        # create appdata directory if it does not exist
+        if not os.path.exists(app_path):
+            shutil.copytree(exe_path, app_path)
+        # update appdata directory if it is out of date
+        file = open(os.path.join(exe_path, "version.txt"))
+        exe_version = file.read()
+        file.close()
+        file = open(os.path.join(app_path, "version.txt"))
+        app_version = file.read()
+        file.close()
+        if exe_version != app_version:
+            if os.path.exists(app_path):
+                shutil.rmtree(app_path)
+            shutil.copytree(exe_path, app_path)
+    except AttributeError:
+        # _MEIPASS does not exist when running python code
+        app_path = os.path.join(os.path.abspath("."), "data")
+    return app_path
+
+
 def fetch_dict(name):
-    file = open(os.path.join(resource_path("data\\dicts\\"), name+".txt"))
+    file = open(os.path.join(data_dir(), "dicts", name+".txt"))
     ret_val = eval(file.read())
     file.close()
     return ret_val
+
+
+def save_dict(name, dictionary):
+    file = open(os.path.join(data_dir(), "dicts", name+".txt"), 'w')
+    file.write("{\n"+",\n".join(f.__repr__()+": "+dictionary[f].__repr__() for f in dictionary)+"\n}")
+    file.close()
 
 
 chrhex = fetch_dict("keycodes")
@@ -175,7 +208,13 @@ class RatioFit:
         self.hero_name = ''
         self.abilities_repeat = []
         self.ab_repeat_on = False
-        self.screen_shot = False
+        self.preferences = fetch_dict("preferences")
+        # prep vars fo more detailed logging
+        self.time_log = [""]
+        for f in range(100):
+            self.time_log.append(str(f+1))
+        self.play_start_time = 0
+        self.round_logger = False
         # open and convert all images
         self.image_pos_dict = {}
         self.image_dict = {}
@@ -212,15 +251,15 @@ class RatioFit:
                 hit_key(key)
                 time.sleep(1/current_num)
 
-    def set_screen_shot(self, set_val):
-        self.screen_shot = set_val
+    def update_prefs(self):
+        self.preferences = fetch_dict("preferences")
 
     def add_repeat_key(self, key):
         key = str(key)
         self.abilities_repeat.append(key)
         if not self.ab_repeat_on:
             self.ab_repeat_on = True
-            newt = Thread(target=self.timer_hit, daemon=True)
+            newt = threading.Thread(target=self.timer_hit, daemon=True)
             newt.start()
 
     def remove_repeat_key(self, key):
@@ -269,6 +308,12 @@ class RatioFit:
             else:
                 return False
 
+    def move_to(self, pos_x, pos_y, duration=0):
+        position = (float(pos_x), float(pos_y))
+        duration = float(duration)
+        converted_pos = self.convert_pos(position)
+        pyautogui.moveTo(*converted_pos, duration)
+
     def click(self, pos_x, pos_y, delay=0.):
         position = (float(pos_x), float(pos_y))
         converted_pos = self.convert_pos(position)
@@ -276,6 +321,12 @@ class RatioFit:
         time.sleep(delay/2)
         pyautogui.click(*converted_pos)
         time.sleep(delay/2)
+
+    def remove_obstacle(self, pos_x, pos_y):
+        self.click(pos_x, pos_y)
+        while not click_image(self.image_dict["buttons obstacle"]):
+            if self.check_edge_cases():
+                self.click(pos_x, pos_y)
 
     def place(self, monkey, pos_x, pos_y, name):
         # place the specified monkey at the specified position
@@ -291,10 +342,11 @@ class RatioFit:
 
     def get_numbers(self):
         # return the amount of cash the player has as an integer
-        screen = pyautogui.screenshot()
         top_left = self.convert_pos((0, 0))
         bottom_right = self.convert_pos((1, 0.085))
-        cropped = screen.crop(top_left+bottom_right)
+        cropped = pyautogui.screenshot().crop(top_left+bottom_right)
+        cropped = cropped.point(lambda p: p > 254 and 255)
+        cropped = cropped.convert('L').point(lambda p: p > 254 and 255)
         num_positions = []
         for f in range(10):
             num_image = self.image_dict['numbers %s' % f]
@@ -311,7 +363,7 @@ class RatioFit:
                 difference = 0
             else:
                 difference = num_positions[f][0] - num_positions[f-1][0]
-            if difference > 0.003:  # different digit, clear pool
+            if difference > 0.0035:  # different digit, clear pool
                 current += max(pool, key=lambda x: pool[x])
                 pool = {}
             # add digit to pool regardless
@@ -319,7 +371,7 @@ class RatioFit:
                 pool[digit] += 1
             else:
                 pool[digit] = 1
-            if difference > 0.02:  # different number entirely, clear current
+            if difference > 0.023:  # different number entirely, clear current
                 nums.append(int(current))
                 current = ""
         # clean up
@@ -328,6 +380,36 @@ class RatioFit:
         if current:
             nums.append(int(current))
         return nums
+
+    def log_round_times(self):
+        # first wait until wee see any round number and set that as the first round
+        next_round = 0
+        while self.round_logger:
+            nums = self.get_numbers()
+            if len(nums) > 2:
+                next_round = nums[2]
+                break
+            time.sleep(0.1)
+        last_time = self.play_start_time
+        # then just log times each time the round ticks up
+        while self.round_logger:
+            nums = self.get_numbers()
+            if len(nums) > 2 and nums[2] == next_round:
+                now = time.time()
+                secs = int(round(now - last_time))
+                last_time = now
+                to_add = str(secs % 60).zfill(2)
+                if secs > 60:
+                    mns = secs // 60
+                    to_add = str(mns % 60).zfill(2) + ":" + to_add
+                    if mns > 60:
+                        to_add = str(mns // 60).zfill(2) + ":" + to_add
+                self.time_log[next_round] += to_add
+                next_round += 1
+                file = open(os.path.join(data_dir(), "log\\times.csv"), 'w')
+                file.write('\n'.join(self.time_log))
+                file.close()
+            time.sleep(1)
 
     def ready_to_upgrade(self, path):
         # determines whether the selected monkey is ready to be upgraded into the specified path
@@ -419,10 +501,32 @@ class RatioFit:
         pyautogui.click(*position)  # select monkey
         hit_key('back')
 
-    def open_track(self, track, difficulty, mode):
+    def open_track(self, track, difficulty, mode, hero=None):
         # opens the specified track into the specified difficulty from the home screen
         # WILL overwrite saves
         play_button = self.image_dict["buttons play"]
+        if hero is not None:  # select the correct hero if specified
+            skins = []
+            for f in range(3):
+                img_name = "heroes %s %s" % (hero, f+1)
+                if img_name in self.image_dict:
+                    skins.append(self.image_dict[img_name])
+            scale = 1.13
+            scaled_skins = []
+            for img in skins:
+                scaled_skins.append(img.resize((int(img.width * scale), int(img.height * scale))))
+            wait_to_see(play_button)
+            if not any_present(scaled_skins):
+                wait_until_click(self.image_dict["heroes heroes"])
+                direct = 1
+                while not any(click_image(img) for img in skins):
+                    self.move_to(0.5, 0.95)
+                    for f in range(20):
+                        pyautogui.scroll(direct)
+                    direct *= -1
+                    time.sleep(0.3)
+                wait_until_click(self.image_dict["heroes select"])
+                hit_key('escape')
         wait_and_static_click(play_button)
         arrow_count = 0
         if "buttons %s" % self.track_difficulties[track] not in self.image_pos_dict:
@@ -461,19 +565,20 @@ class RatioFit:
         # function checks for and handles various edge cases
         # first check if we've leveled up
         if click_image(self.image_dict["edge cases LEVEL UP"]):
+            log("\nLevel up ")
             if shows_up(self.image_dict["edge cases monkey knowledge"], 1):
                 click_image(self.image_dict["edge cases monkey knowledge"])
             time.sleep(self.delay)
-            hit_keys(' ')
+            hit_keys('  ')
             return True
         # then check for tas failure
         if is_present(self.image_dict["edge cases restart"]):
-            if self.screen_shot:
+            if self.preferences["screenshot"]:
                 wait_until_click(self.image_dict["edge cases review"])
                 time.sleep(1)
-                cur_time = time.strftime("%m-%d-%Y-%H-%M-%S")
+                cur_time = time.strftime("%Y-%m-%d-%H-%M-%S")
                 log("\nScreenshot taken "+cur_time)
-                pyautogui.screenshot(os.path.join(log_dir(), cur_time+".png"))
+                pyautogui.screenshot(os.path.join(data_dir(), "log", cur_time+".png"))
                 hit_key("escape")
             self.cancel_repeat_keys()
             wait_until_click(self.image_dict["buttons home"])
@@ -492,10 +597,7 @@ class RatioFit:
         lives = float(lives)
         while 1:
             nums = self.get_numbers()
-            if len(nums) < 1:
-                self.check_edge_cases()
-                continue
-            if nums[0] <= lives:
+            if len(nums) > 0 and nums[0] <= lives:
                 break
             self.check_edge_cases()
 
@@ -504,10 +606,8 @@ class RatioFit:
         money = float(money)
         while 1:
             nums = self.get_numbers()
-            if len(nums) < 2:
-                self.check_edge_cases()
-                continue
-            if nums[1] >= money:
+            time.sleep(1)
+            if len(nums) > 1 and nums[1] >= money:
                 break
             self.check_edge_cases()
 
@@ -516,10 +616,7 @@ class RatioFit:
         round_num = float(round_num)
         while 1:
             nums = self.get_numbers()
-            if len(nums) < 3:
-                self.check_edge_cases()
-                continue
-            if nums[2] >= round_num:
+            if len(nums) > 2 and nums[2] >= round_num:
                 break
             self.check_edge_cases()
 
@@ -574,13 +671,15 @@ class RatioFit:
                 "round": self.wait_for_round,
                 "lives": self.wait_for_lives,
                 "click": self.click,
+                "move": self.move_to,
                 "use ability": hit_key,
                 "repeat ability": self.add_repeat_key,
                 "stop ability": self.remove_repeat_key,
                 "stop all abilities": self.cancel_repeat_keys,
                 "target": self.change_targeting,
                 "priority": self.toggle_priority,
-                "sell": self.sell_tower}
+                "sell": self.sell_tower,
+                "remove": self.remove_obstacle}
         for prefix in opts:
             if parse(command, prefix, opts[prefix]):
                 break
@@ -591,6 +690,14 @@ class RatioFit:
         # play a map once given a list of commands
         self.monkey_place = dict()  # clear out monkey dicts
         self.monkey_type = dict()
+        if self.preferences["log times"]:
+            self.play_start_time = time.time()
+            for f in range(len(self.time_log)):
+                self.time_log[f] += ','
+            self.time_log[0] += time.strftime("%m/%d/%Y %H:%M:%S")
+            self.round_logger = True
+            newt = threading.Thread(target=self.log_round_times, daemon=True)
+            newt.start()
         self.do_command(parameters[0])  # should start the track
         self.do_command(parameters[1])  # should place the first tower
         log('\nStart (hit space twice)')
@@ -607,6 +714,10 @@ class RatioFit:
 
     def kill_threads(self):
         self.cancel_repeat_keys()
+        self.round_logger = False
+        # halt until the other threads die
+        while threading.active_count() != 1:
+            pass
 
 
 def wait_and_static_click(image, threshold=4):
@@ -649,7 +760,7 @@ def is_present(image):
 
 
 def any_present(images):
-    # function which determines if a certain image is present
+    # function which determines if any image from a given list is present
     for image in images:
         if is_present(image):
             return True
@@ -707,28 +818,13 @@ def is_loading():
     return bool(black/pixel_count > 0.5)
 
 
-def log_dir():
-    # get path to log directory
-    try:
-        # PyInstaller creates a temp folder and stores path in _MEIPASS
-        # for log file we want to move up one directory to avoid immediate deletion upon program exit
-        base_path = sys._MEIPASS
-        base_path = os.path.dirname(base_path)
-    except Exception:
-        base_path = os.path.abspath(".")
-        base_path = os.path.join(base_path, "data\\")
-
-    return os.path.join(base_path, "log\\")
-
-
 def log_file():
     # get path to log file
-    return os.path.join(log_dir(), "log.txt")
+    return os.path.join(data_dir(), "log\\log.txt")
 
 
 def clear_log():
     # empty the log file
-    os.makedirs(log_dir(), exist_ok=True)
     file = open(log_file(), 'w')
     file.close()
 

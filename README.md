@@ -1,9 +1,10 @@
-#BloonsPlayer
+#BloonsPlayer 0.1.5
 BloonsPlayer is a screen scraping tool for scripting and playing Bloons Tower Defense 6. 
 If you want to contribute your scripts to the project join the [discord](https://discord.gg/uJfudc3RfV).
 
 #Dependencies
 BloonsPlayer supports python 3 on Windows and requires [PyAutoGui](https://pypi.org/project/PyAutoGUI/).
+In game, the hotkeys must be set to default, auto start must be on, and placement must be set to drag and drop.
 
 #Usage
 The BloonsPlayer code can be found in the src folder. 
@@ -39,6 +40,10 @@ See also the tas directory for more examples.
 The first command should be the "open" command and should follow the following format.
 ```
 open monkey meadow, easy, standard  # specify map, difficulty, and mode to open
+```
+This command can also optionally specify a hero, which the bot will then make sure is selected when the track is opened.
+```
+open monkey meadow, easy, standard, quincy
 ```
 The valid course names are:
 * \#ouch
@@ -119,6 +124,21 @@ And the valid course modes are:
 * primary only
 * reverse
 * standard
+
+And the valid heroes are:
+* admiral brickell
+* adora
+* benjamin
+* captain churchill
+* etienne
+* ezili
+* gwendolin
+* obyn greenfoot
+* pat fusty
+* psi
+* quincy
+* sauda
+* striker jones
 
 ###Placing a tower
 The "place" command is used to place a tower. The arguments are: the type of tower, 
@@ -224,9 +244,22 @@ The "sell" command sells the tower specified by its name.
 sell first spikes
 ```
 
+###Removing an obstacle
+The "remove" command removes a course obstacle at the given position.
+```
+remove (0.13, 0.37)  # remove an obstacle at (0.13, 0.37)
+```
+
 ###Click
 The "click" command simply clicks at the given relative coordinates.
 This can be used to activate map gimmicks, or anything really.
 ```
 click (0.13, 0.37)  # click at (0.13, 0.37)
+```
+
+###Move
+The "move" command simply moves the mouse to the given relative coordinates.
+This can be used to collect money, or anything really.
+```
+move (0.13, 0.37)  # move to (0.13, 0.37)
 ```

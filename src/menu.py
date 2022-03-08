@@ -1,15 +1,19 @@
-from player import *
+from player import fetch_dict, save_dict
+from threading import Thread
+import pyautogui
 import tkinter
 import math
+import time
 
 
 class ChooseOption:
 
-    def __init__(self, title, caption, options):
+    def __init__(self, title, caption, options, pos_finder):
         self.choice = None  # selected option
-        goal_ratio = 2  # button width to height ratio to aim for
+        goal_ratio = 1.3  # button width to height ratio to aim for
         button_num = 1 + len(options)
-        self.pos_finder = RatioFit(pyautogui.size(), 0)  # initialize position finder
+        self.pos_finder = pos_finder  # RatioFit class
+        self.prefs = fetch_dict("preferences")
         # create root
         self.root = tkinter.Tk()
         self.root.title(title)
@@ -19,9 +23,12 @@ class ChooseOption:
         file_menu.add_command(label="Exit", command=self.root.quit)
         menu_bar.add_cascade(label="File", menu=file_menu)
         option_menu = tkinter.Menu(menu_bar, tearoff=0)
-        self.screen_shot = tkinter.BooleanVar(self.root, False)
+        self.screen_shot = tkinter.BooleanVar(self.root, self.prefs['screenshot'])
         option_menu.add_checkbutton(label="Take Screenshot On Failure", onvalue=1, offvalue=0,
-                                    variable=self.screen_shot)
+                                    variable=self.screen_shot, command=self.set_prefs)
+        self.log_times = tkinter.BooleanVar(self.root, self.prefs['log times'])
+        option_menu.add_checkbutton(label="Log Round Times", onvalue=1, offvalue=0,
+                                    variable=self.log_times, command=self.set_prefs)
         menu_bar.add_cascade(label="Options", menu=option_menu)
         self.root.config(menu=menu_bar)
         # create buttons
@@ -43,8 +50,11 @@ class ChooseOption:
         frame.columnconfigure(tuple(range(columns)), weight=1)
         frame.rowconfigure(tuple(range(rows)), weight=1)
 
-    def get_ss(self):
-        return self.screen_shot.get()
+    def set_prefs(self):
+        self.prefs['screenshot'] = self.screen_shot.get()
+        self.prefs['log times'] = self.log_times.get()
+        save_dict('preferences', self.prefs)
+        self.pos_finder.update_prefs()
 
     def choose(self, choice):
         self.toggle_pos = False
@@ -56,31 +66,30 @@ class ChooseOption:
         return self.choice
 
     def display_pos(self):
+        previous = ""
+        current = ""
+        counter = 0
         while self.toggle_pos:
             time.sleep(0.03)
             position = self.pos_finder.revert_pos(pyautogui.position())
-            self.print_button['text'] = "({:.5f}, {:.5f})".format(*position)
-        self.print_button['text'] = "print mouse position"
-
-    def print_pos(self):
-        time.sleep(2)
-        print(self.pos_finder.revert_pos(pyautogui.position()))
-        time.sleep(2)
-        print(self.pos_finder.revert_pos(pyautogui.position()))
-        time.sleep(2)
-        print(self.pos_finder.revert_pos(pyautogui.position()))
-        time.sleep(2)
-        print(self.pos_finder.revert_pos(pyautogui.position()))
-        time.sleep(2)
-        print(self.pos_finder.revert_pos(pyautogui.position()))
+            previous = current
+            current = "({:.5f}, {:.5f})".format(*position)
+            self.print_button['text'] = current
+            if previous == current:
+                counter += 1
+            else:
+                counter = 0
+            if counter == 60 and 0 <= position[0] <= 1 and 0 <= position[1] <= 1:
+                print(current)
+                self.root.clipboard_clear()
+                self.root.clipboard_append(current)
+        self.print_button['text'] = "Display mouse position"
 
     def position_info(self):
         self.toggle_pos = not self.toggle_pos
         if self.toggle_pos:
             newt = Thread(target=self.display_pos, daemon=True)
             newt.start()
-        newt2 = Thread(target=self.print_pos, daemon=True)
-        newt2.start()
 
     def show(self):
         self.root.mainloop()

@@ -1,0 +1,4 @@
+{
+'screenshot': False,
+'log times': False
+}

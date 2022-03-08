@@ -21,11 +21,9 @@ def main():
     print('Log file located at:')
     print(log_file())
     # get track choice
-    chooser = ChooseOption('BTD6 bot ready', 'Choose which map to play repeatedly', option_names)
+    chooser = ChooseOption('BTD6 bot ready', 'Choose which map to play repeatedly', option_names, screen)
     chooser.show()
     choice = chooser.get_choice()
-    screen.set_screen_shot(chooser.get_ss())
-    del chooser
     # start main loop
     mainloop = True
     while mainloop:
@@ -33,9 +31,8 @@ def main():
             screen.play(plays[choice])
         except Exception as e:
             log('\n' + repr(e))
-            if type(e) == BloonsError:
-                continue
-            raise
+            if type(e) != BloonsError:
+                raise
         finally:
             screen.kill_threads()
 
