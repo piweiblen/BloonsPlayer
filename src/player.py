@@ -3,7 +3,9 @@ import threading
 import ctypes
 from ctypes import wintypes
 from PIL import Image
+import skimage
 import shutil
+import numpy
 import time
 import sys
 import os
@@ -342,43 +344,43 @@ class RatioFit:
 
     def get_numbers(self):
         # return the amount of cash the player has as an integer
-        top_left = self.convert_pos((0, 0))
-        bottom_right = self.convert_pos((1, 0.085))
+        top_left = self.convert_pos((0, 0.02))
+        bottom_right = self.convert_pos((1, 0.065))
+        h = 50
         cropped = pyautogui.screenshot().crop(top_left+bottom_right)
+        cropped = cropped.resize((int(h * cropped.width / cropped.height), h))
         cropped = cropped.point(lambda p: p > 254 and 255)
         cropped = cropped.convert('L').point(lambda p: p > 254 and 255)
-        num_positions = []
-        for f in range(10):
-            num_image = self.image_dict['numbers %s' % f]
-            for spot in pyautogui.locateAll(num_image, cropped, confidence=0.7):
-                rel_spot = self.revert_pos(spot)
-                num_positions.append((rel_spot[0], f))
-        num_positions.sort()
-        current = ""
-        pool = {}
+        cropped = cropped.crop(cropped.getbbox())
+        sections = []
+        hors = []
+        labels, l_num = skimage.measure.label(numpy.array(cropped), return_num=True, connectivity=1)
+        for f in range(1, l_num):
+            new_arr = 255 * (labels == f)
+            xs, ys = numpy.where(new_arr != 0)
+            if xs.size > 0 and ys.size > 0:
+                new_arr = new_arr[min(xs):max(xs)+1, min(ys):max(ys)+1]
+                if new_arr.size > 400 and new_arr.shape[0] > 25:
+                    spot = pos_insert(hors, min(ys))
+                    sections.insert(spot, new_arr)
         nums = []
-        for f in range(len(num_positions)):
-            digit = str(num_positions[f][1])
-            if not f:
-                difference = 0
-            else:
-                difference = num_positions[f][0] - num_positions[f-1][0]
-            if difference > 0.0035:  # different digit, clear pool
-                current += max(pool, key=lambda x: pool[x])
-                pool = {}
-            # add digit to pool regardless
-            if digit in pool:
-                pool[digit] += 1
-            else:
-                pool[digit] = 1
-            if difference > 0.023:  # different number entirely, clear current
-                nums.append(int(current))
-                current = ""
-        # clean up
-        if pool:
-            current += max(pool, key=lambda x: pool[x])
-        if current:
-            nums.append(int(current))
+        last_pos = 0
+        cur_num = ""
+        for i in range(len(sections)):
+            guesses = []
+            for f in range(10):
+                num_img = self.image_dict['numbers %s' % f].resize(sections[i].shape[::-1]).convert('L')
+                match_arr = numpy.array(num_img)
+                guesses.append(abs(sections[i] - match_arr).sum() / match_arr.size)
+            num = min(range(10), key=lambda x: guesses[x])
+            if guesses[num] < 65:
+                if hors[i] - last_pos > 40 and cur_num:
+                    nums.append(int(cur_num))
+                    cur_num = ""
+                cur_num += str(num)
+                last_pos = hors[i]
+        if cur_num:
+            nums.append(int(cur_num))
         return nums
 
     def log_round_times(self):
@@ -476,8 +478,10 @@ class RatioFit:
         position = self.convert_pos(self.monkey_place[monkey_name])
         bring_to_front('BloonsTD6')
         pyautogui.click(*position)  # select monkey
+        time.sleep(0.15)
         for f in range(times):
             hit_key('tab')
+            time.sleep(0.15)
         if self.monkey_type[monkey_name] == "dartling":
             time.sleep(self.delay)
             if x_place is not None and y_place is not None:
@@ -507,10 +511,9 @@ class RatioFit:
         play_button = self.image_dict["buttons play"]
         if hero is not None:  # select the correct hero if specified
             skins = []
-            for f in range(3):
-                img_name = "heroes %s %s" % (hero, f+1)
-                if img_name in self.image_dict:
-                    skins.append(self.image_dict[img_name])
+            for img in self.image_dict:
+                if img.startswith("heroes ") and hero in img:
+                    skins.append(self.image_dict[img])
             scale = 1.13
             scaled_skins = []
             for img in skins:
@@ -525,7 +528,8 @@ class RatioFit:
                         pyautogui.scroll(direct)
                     direct *= -1
                     time.sleep(0.3)
-                wait_until_click(self.image_dict["heroes select"])
+                if shows_up(self.image_dict["heroes select"], 2):
+                    wait_until_click(self.image_dict["heroes select"])
                 hit_key('escape')
         wait_and_static_click(play_button)
         arrow_count = 0
@@ -843,3 +847,18 @@ def parse(command, prefix, func):
     args = [c.strip("( )") for c in sub_command.split(',')]
     func(*args)
     return True
+
+
+def pos_insert(lis, n):
+    # insert n into sorted list lis, return position inserted
+    min_p = 0
+    max_p = len(lis)
+    ind = (max_p + min_p) // 2
+    while min_p < max_p:
+        if lis[ind] < n:
+            min_p = ind + 1
+        else:
+            max_p = ind
+        ind = (max_p + min_p) // 2
+    lis.insert(ind, n)
+    return ind

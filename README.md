@@ -1,9 +1,10 @@
-#BloonsPlayer 0.1.5
+#BloonsPlayer 0.1.6
 BloonsPlayer is a screen scraping tool for scripting and playing Bloons Tower Defense 6. 
 If you want to contribute your scripts to the project join the [discord](https://discord.gg/uJfudc3RfV).
 
 #Dependencies
-BloonsPlayer supports python 3 on Windows and requires [PyAutoGui](https://pypi.org/project/PyAutoGUI/).
+BloonsPlayer supports python 3 on Windows and requires
+[PyAutoGui](https://pypi.org/project/PyAutoGUI/), and [scikit-image](https://pypi.org/project/scikit-image/).
 In game, the hotkeys must be set to default, auto start must be on, and placement must be set to drag and drop.
 
 #Usage
@@ -246,7 +247,9 @@ sell first spikes
 
 ###Removing an obstacle
 The "remove" command removes a course obstacle at the given position.
+This does not wait until you have enough money, so one will likely need to accompany it with a delay as well.
 ```
+money 1000
 remove (0.13, 0.37)  # remove an obstacle at (0.13, 0.37)
 ```
 

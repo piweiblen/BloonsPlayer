@@ -1,4 +1,4 @@
-open dark castle, hard, chimps, obyn greenfoot
+open dark castle, hard, chimps, obyn
 place dart, (0.348, 0.57), dart1
 place sub, (0.661, 0.64), sub
 money 215

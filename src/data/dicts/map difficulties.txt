@@ -48,7 +48,7 @@
 "off the coast": "advanced",
 "cornfield": "advanced",
 "underground": "advanced",
-"sanctuary": "advanced",
+"sanctuary": "expert",
 "ravine": "expert",
 "flooded valley": "expert",
 "infernal": "expert",
