@@ -1,5 +1,5 @@
 from player import fetch_dict, save_dict
-from threading import Thread
+import threading
 import pyautogui
 import tkinter
 import math
@@ -88,7 +88,7 @@ class ChooseOption:
     def position_info(self):
         self.toggle_pos = not self.toggle_pos
         if self.toggle_pos:
-            newt = Thread(target=self.display_pos, daemon=True)
+            newt = threading.Thread(target=self.display_pos, daemon=True)
             newt.start()
 
     def show(self):

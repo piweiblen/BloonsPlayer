@@ -1,0 +1,9 @@
+open sanctuary, easy, standard
+place boat, (0.43911, 0.16944), pirate
+round 2
+delay 1
+upgrade pirate, 3, 2, 2, 2, 3
+round 14
+delay 1
+place boat, (0.56182, 0.16944), deck
+upgrade deck, 1, 2, 1, 1, 2, 1

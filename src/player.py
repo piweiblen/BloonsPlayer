@@ -3,7 +3,7 @@ import threading
 import ctypes
 from ctypes import wintypes
 from PIL import Image
-import skimage
+from scipy import ndimage
 import shutil
 import numpy
 import time
@@ -354,13 +354,13 @@ class RatioFit:
         cropped = cropped.crop(cropped.getbbox())
         sections = []
         hors = []
-        labels, l_num = skimage.measure.label(numpy.array(cropped), return_num=True, connectivity=1)
-        for f in range(1, l_num):
+        labels, l_num = ndimage.label(numpy.array(cropped))
+        for f in range(1, l_num+1):
             new_arr = 255 * (labels == f)
             xs, ys = numpy.where(new_arr != 0)
             if xs.size > 0 and ys.size > 0:
                 new_arr = new_arr[min(xs):max(xs)+1, min(ys):max(ys)+1]
-                if new_arr.size > 400 and new_arr.shape[0] > 25:
+                if new_arr.size > 350 and new_arr.shape[0] > 23:
                     spot = pos_insert(hors, min(ys))
                     sections.insert(spot, new_arr)
         nums = []
@@ -374,7 +374,7 @@ class RatioFit:
                 guesses.append(abs(sections[i] - match_arr).sum() / match_arr.size)
             num = min(range(10), key=lambda x: guesses[x])
             if guesses[num] < 65:
-                if hors[i] - last_pos > 40 and cur_num:
+                if hors[i] - last_pos > 35 and cur_num:
                     nums.append(int(cur_num))
                     cur_num = ""
                 cur_num += str(num)
