@@ -1,4 +1,4 @@
-#BloonsPlayer 0.1.6
+#BloonsPlayer 0.1.7
 BloonsPlayer is a screen scraping tool for scripting and playing Bloons Tower Defense 6. 
 If you want to contribute your scripts to the project join the [discord](https://discord.gg/uJfudc3RfV).
 
@@ -47,7 +47,6 @@ This command can also optionally specify a hero, which the bot will then make su
 open monkey meadow, easy, standard, quincy
 ```
 The valid course names are:
-* \#ouch
 * adora's temple
 * alpine run
 * another brick
@@ -84,6 +83,7 @@ The valid course names are:
 * moon landing
 * muddy puddles
 * off the coast
+* ouch
 * park path
 * pat's pond
 * peninsula

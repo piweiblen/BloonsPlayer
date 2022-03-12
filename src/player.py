@@ -360,7 +360,7 @@ class RatioFit:
             xs, ys = numpy.where(new_arr != 0)
             if xs.size > 0 and ys.size > 0:
                 new_arr = new_arr[min(xs):max(xs)+1, min(ys):max(ys)+1]
-                if new_arr.size > 350 and new_arr.shape[0] > 23:
+                if new_arr.size > 300 and new_arr.shape[0] > 20:
                     spot = pos_insert(hors, min(ys))
                     sections.insert(spot, new_arr)
         nums = []
@@ -694,15 +694,16 @@ class RatioFit:
         # play a map once given a list of commands
         self.monkey_place = dict()  # clear out monkey dicts
         self.monkey_type = dict()
+        self.play_start_time = time.time()
+        self.do_command(parameters[0])  # should open the track
         if self.preferences["log times"]:
-            self.play_start_time = time.time()
+            # begin logging times if that option was selected
             for f in range(len(self.time_log)):
                 self.time_log[f] += ','
             self.time_log[0] += time.strftime("%m/%d/%Y %H:%M:%S")
             self.round_logger = True
             newt = threading.Thread(target=self.log_round_times, daemon=True)
             newt.start()
-        self.do_command(parameters[0])  # should start the track
         self.do_command(parameters[1])  # should place the first tower
         log('\nStart (hit space twice)')
         if "apopalypse" in parameters[0]:  # apopalypse runs on its own
