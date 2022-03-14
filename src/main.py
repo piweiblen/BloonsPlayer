@@ -10,31 +10,37 @@ def main():
     screen = RatioFit(pyautogui.size(), 0.3)
     # import menu options
     option_names = []
-    plays = []
+    plays = {}
     base_path = resource_path("data\\tas\\")
     for tas in os.listdir(base_path):
-        option_names.append(tas[:tas.find('.')])
+        if not tas.endswith(".txt"):
+            continue
+        option_names.append(tas[:-4])
         file = open(os.path.join(base_path, tas))
-        plays.append(file.read().split('\n'))
+        plays[tas[:-4]] = tuple(file.read().split('\n'))
         file.close()
     # print log file path
     print('Log file located at:')
     print(log_file())
     # get track choice
-    chooser = ChooseOption('BTD6 bot ready', 'Choose which map to play repeatedly', option_names, screen)
+    chooser = ChooseOption('BloonsPlayer v0.2.0', option_names, plays, screen)
     chooser.show()
-    choice = chooser.get_choice()
+    choices = chooser.get_choice()
+    if not choices or not chooser.run:
+        print("No selection made")
+        return None
     # start main loop
     mainloop = True
     while mainloop:
-        try:
-            screen.play(plays[choice])
-        except Exception as e:
-            log('\n' + repr(e))
-            if type(e) != BloonsError:
-                raise
-        finally:
-            screen.kill_threads()
+        for choice in choices:
+            try:
+                screen.play(plays[choice])
+            except Exception as e:
+                log('\n' + repr(e))
+                if type(e) != BloonsError:
+                    raise
+            finally:
+                screen.kill_threads()
 
 
 if __name__ == "__main__":

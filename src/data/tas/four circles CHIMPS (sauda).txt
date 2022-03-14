@@ -1,18 +1,14 @@
 open four circles, hard, chimps, sauda
 place hero, (0.492, 0.5), sauda
-money 350
 place sub, (0.353, 0.245), energy
 upgrade energy, 1, 2, 2, 1
-money 1300
 place village, (0.44, 0.36), mib
 upgrade mib, 1, 1
-money 870
 place plane, (0.55, 0.35), shredder
 upgrade shredder, 1, 1, 1, 1, 3, 3
 money 3300
 upgrade energy, 1, 1, 1
 upgrade shredder, 1
-money 600
 place alchemist, (0.492, 0.18), strong
 upgrade strong, 1, 1, 1, 1, 2, 2
 upgrade mib, 2, 2, 2

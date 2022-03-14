@@ -1,44 +1,32 @@
 open dark castle, hard, chimps, obyn
-place dart, (0.348, 0.57), dart1
-place sub, (0.661, 0.64), sub
-money 215
+place dart, (0.348, 0.57), dart1, no delay
+place sub, (0.661, 0.64), sub, no delay
 place dart, (0.307, 0.57), dart2
 target dart1, 3
 target dart2, 3
-money 700
 place hero, (0.503, 0.41), obyn
-money 430
 place druid, (0.445, 0.4), druid1
-money 430
 place druid, (0.555, 0.41), druid2
-money 430
 place druid, (0.48, 0.35), druid3
-money 1080
 place spikes, (0.934, 0.52), perma
 upgrade perma, 2, 2
 upgrade druid1, 3, 2
 upgrade druid2, 3, 2
 upgrade druid3, 3, 2
-money 430
 place druid, (0.538, 0.35), druid4
 upgrade druid4, 3, 2
-money 430
 place druid, (0.59, 0.35), druid5
 upgrade druid5, 3, 2
-money 430
 place druid, (0.608, 0.41), druid6
 upgrade druid6, 3, 2
-money 595
 place alchemist, (0.457, 0.3), alch1
 upgrade alch1, 1, 1
-money 595
 place alchemist, (0.619, 0.3)), alch2
 upgrade alch2, 1, 1
 upgrade perma, 3, 3, 3 # long life spikes
 target perma, 3
 upgrade druid1, 3, 3 # start getting druids of wrath
 upgrade druid2, 3, 3
-money 1295
 place village, (0.532, 0.27), mib # 13
 upgrade mib, 2, 2, 1, 1
 upgrade druid3, 3, 3 # finish getting druids of wrath
@@ -58,7 +46,6 @@ upgrade alch2, 1
 upgrade druid1, 3 # avatar of wrath
 upgrade mib, 2 # MIB
 upgrade perma, 3 # deadly spikes
-money 595
 place alchemist, (0.955, 0.42)), last
 upgrade last, 1, 1
 upgrade perma, 3 # perma spike

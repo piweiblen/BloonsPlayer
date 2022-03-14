@@ -1,7 +1,6 @@
 open tree stump, easy, standard
 place ninja, (0.469, 0.4), bomber
 upgrade bomber, 3, 1, 1, 3, 3
-money 430
 place ninja, (0.469, 0.31), shred
 upgrade shred, 3, 1, 1, 3, 1, 1
 upgrade bomber, 3

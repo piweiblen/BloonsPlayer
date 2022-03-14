@@ -1,0 +1,19 @@
+open dark castle, easy, standard
+place sub, (0.65898, 0.64861), sub
+upgrade sub, 2
+place dart, (0.34009, 0.57639), dart
+upgrade sub, 1, 1
+upgrade dart, 3, 3, 3, 2, 2
+place druid, (0.25828, 0.74167), d1
+upgrade d1, 2, 2, 2
+upgrade sub, 2
+place druid, (0.26247, 0.27569), d2
+upgrade d2, 2, 2, 2
+place druid, (0.29965, 0.64792), d3
+upgrade d3, 2, 2, 2
+place druid, (0.30105, 0.38611), d4
+upgrade d4, 2, 2, 2
+upgrade dart, 3
+upgrade sub, 2
+place bomb, (0.38565, 0.21181), noab
+upgrade noab, 2, 2, 2, 1, 1

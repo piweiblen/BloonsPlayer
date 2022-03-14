@@ -1,0 +1,17 @@
+open workshop, easy, standard
+place boomerang, (0.56833, 0.58125), boomer
+upgrade boomer, 2, 2, 3, 3
+place wizard, (0.61156, 0.45417), camo
+upgrade camo, 2, 2
+place druid, (0.56089, 0.45833), d1
+upgrade d1, 2, 2, 2
+place spikes, (0.94067, 0.60903), cleanup
+upgrade cleanup, 2, 2
+place druid, (0.60877, 0.39097), d2
+upgrade d2, 2, 2, 2
+place druid, (0.56182, 0.39306), d3
+upgrade d3, 2, 2, 2
+place druid, (0.72126, 0.37847), d4
+upgrade d4, 2, 2, 2
+upgrade cleanup, 3, 3, 3
+upgrade boomer, 3, 3

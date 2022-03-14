@@ -1,23 +1,19 @@
 open resort, hard, chimps
 place sub, (0.69237, 0.27207), submerger
 upgrade submerger, 3
-money 1750
 place heli, (0.92333, 0.21622), primo
 upgrade primo, 1
 upgrade submerger, 1, 1, 1
 upgrade primo, 1
-money 600
 place alchemist, (0.90102, 0.30811), stimi
 upgrade stimi, 1, 1
 upgrade primo, 3, 3, 1
 upgrade stimi, 1, 1, 3
 upgrade primo, 1
-money 1300
 place village, (0.79549, 0.20450), mib
 upgrade mib, 1, 1, 2, 2
 upgrade primo, 1
 upgrade mib, 2
-money 300
 place glue, (0.79368, 0.06036), gluer
 upgrade gluer, 2, 2, 3, 3, 3, 3
 upgrade stimi, 1

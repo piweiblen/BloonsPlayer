@@ -1,4 +1,6 @@
 {
 'screenshot': False,
-'log times': False
+'log times': False,
+'choices': [],
+'filters': {}
 }

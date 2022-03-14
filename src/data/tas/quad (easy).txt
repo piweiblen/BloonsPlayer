@@ -1,0 +1,26 @@
+open quad, easy, standard
+place sub, (0.59250, 0.51806), sub
+upgrade sub, 1
+place sub, (0.41075, 0.51806), dom
+upgrade dom, 1
+upgrade sub, 2, 1
+upgrade dom, 2, 1
+place druid, (0.77612, 0.52569), d1
+upgrade d1, 2, 2, 2
+place boat, (0.49907, 0.40972), bing
+place boat, (0.50139, 0.60347), bong
+upgrade bing, 3, 3
+upgrade bong, 3, 3
+upgrade sub, 2
+upgrade dom, 2
+upgrade bing, 2, 2
+upgrade bong, 2, 2
+place druid, (0.23597, 0.52014), d2
+upgrade d2, 2, 2, 2
+place druid, (0.50279, 0.25972), d3
+upgrade d3, 2, 2, 2
+place druid, (0.50325, 0.77431), d4
+upgrade d4, 2, 2, 2
+upgrade sub, 2
+upgrade dom, 2
+upgrade bing, 2

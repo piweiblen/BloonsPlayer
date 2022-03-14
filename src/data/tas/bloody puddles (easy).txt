@@ -1,0 +1,26 @@
+open bloody puddles, easy, standard
+place sub, (0.29082, 0.62153), sub
+place sub, (0.71801, 0.18194), dom
+upgrade sub, 1, 2
+upgrade dom, 2
+upgrade sub, 1
+upgrade dom, 1, 1
+place druid, (0.63434, 0.39792), d1
+upgrade d1, 2, 2, 2
+place boat, (0.15416, 0.41944), bing
+place boat, (0.64317, 0.81250), bong
+upgrade bing, 3, 3
+upgrade bong, 3, 3
+upgrade sub, 2
+upgrade dom, 2
+upgrade bing, 2, 2
+upgrade bong, 2, 2
+place druid, (0.81144, 0.40208), d2
+upgrade d2, 2, 2, 2
+place druid, (0.42144, 0.31458), d3
+upgrade d3, 2, 2, 2
+place druid, (0.18670, 0.12569), d4
+upgrade d4, 2, 2, 2
+upgrade sub, 2
+upgrade dom, 2
+upgrade bing, 2

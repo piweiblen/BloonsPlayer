@@ -1,4 +1,4 @@
-# BloonsPlayer 0.1.7
+# BloonsPlayer 0.2.0
 BloonsPlayer is a screen scraping tool for scripting and playing Bloons Tower Defense 6. 
 If you want to contribute your scripts to the project join the [discord](https://discord.gg/uJfudc3RfV).
 
@@ -156,8 +156,10 @@ The "place" command is used to place a tower. The arguments are: the type of tow
 the relative placement coordinates, and a unique name for the monkey which will be used in later commands.
 The coordinates should be two floats between 0 and 1, for the x and y position. 
 To find these coordinates reliably, use the print mouse position button in the BloonsPlayer menu. 
-Note also that placement commands do not wait and a delay must often be used to ensure sufficient funds.
+Note that the place commands will automatically wait for sufficient funds to place the specified tower,
+but this can be shut off by adding an optional fourth argument.
 ```
+place dart, (0.567, 0.82), dart1, no delay  # place a dart monkey with no built in delay
 place spikes, (0.43, 0.33), first spikes  # place a spike factory at (0.43, 0.33)
 ```
 The valid tower types are:

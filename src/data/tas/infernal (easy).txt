@@ -1,0 +1,24 @@
+open infernal, easy, standard
+place sub, (0.70825, 0.23819), dom
+place sub, (0.29640, 0.73472), sub
+upgrade sub, 2
+upgrade dom, 2
+upgrade sub, 1, 1
+upgrade dom, 1, 1, 2
+upgrade sub, 2
+place boat, (0.73800, 0.18264), bing
+place boat, (0.26758, 0.80903), bong
+upgrade bing, 3, 3
+upgrade bong, 3, 3
+upgrade bing, 2, 2
+upgrade bong, 2, 2
+upgrade sub, 2
+upgrade dom, 2
+place dart, (0.28664, 0.25625), mart
+upgrade mart, 3, 3, 3, 2, 2
+place dart, (0.71662, 0.76181), fart
+upgrade fart, 3, 3, 3, 2, 2
+upgrade bing, 2
+upgrade bong, 2
+upgrade mart, 3
+upgrade fart, 3

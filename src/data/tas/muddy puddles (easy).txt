@@ -1,0 +1,28 @@
+open muddy puddles, easy, standard
+place druid, (0.23411, 0.61875), d1
+place sub, (0.72963, 0.41597), dom
+upgrade dom, 2
+place sub, (0.18577, 0.43958), sub
+upgrade sub, 1
+upgrade d1, 2
+upgrade sub, 1, 2
+upgrade dom, 1, 1
+upgrade d1, 2, 2
+place boat, (0.37217, 0.64097), bing
+upgrade bing, 3
+place boat, (0.79192, 0.44167), bong
+upgrade bing, 3
+upgrade bong, 3, 3
+upgrade sub, 2
+upgrade dom, 2
+upgrade bing, 2, 2
+upgrade bong, 2, 2
+place druid, (0.44422, 0.16181), d2
+upgrade d2, 2, 2, 2
+place druid, (0.23318, 0.15278), d3
+upgrade d3, 2, 2, 2
+place druid, (0.66502, 0.15417), d4
+upgrade d4, 2, 2, 2
+upgrade sub, 2
+upgrade dom, 2
+upgrade bong, 2

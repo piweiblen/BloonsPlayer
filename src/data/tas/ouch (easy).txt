@@ -1,0 +1,26 @@
+open ouch, easy, standard
+place sub, (0.43725, 0.43611), sub
+place sub, (0.57902, 0.56319), dom
+upgrade sub, 1, 2
+upgrade dom, 2
+upgrade sub, 1
+upgrade dom, 1, 1
+place druid, (0.69058, 0.29167), d1
+upgrade d1, 2, 2, 2
+place boat, (0.51116, 0.43542), bing
+place boat, (0.42702, 0.53750), bong
+upgrade bing, 3, 3
+upgrade bong, 3, 3
+upgrade sub, 2
+upgrade dom, 2
+upgrade bing, 2, 2
+upgrade bong, 2, 2
+place druid, (0.32011, 0.72014), d2
+upgrade d2, 2, 2, 2
+place druid, (0.31592, 0.28750), d3
+upgrade d3, 2, 2, 2
+place druid, (0.69709, 0.73125), d4
+upgrade d4, 2, 2, 2
+upgrade sub, 2
+upgrade dom, 2
+upgrade bing, 2

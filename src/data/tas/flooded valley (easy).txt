@@ -1,6 +1,5 @@
 open flooded valley, easy, standard
 place boat, (0.584, 0.15), cannon
 upgrade cannon, 2, 2, 3, 3, 2
-money 405
 place boat, (0.619, 0.75), carrier
 upgrade carrier, 2, 2, 1, 1, 1, 1

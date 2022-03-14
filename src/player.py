@@ -205,9 +205,12 @@ class RatioFit:
         self.upgrade_dict = {1: ',', 2: '.', 3: '/'}
         self.monkey_dict = fetch_dict("monkey hotkeys")
         self.track_difficulties = fetch_dict("map difficulties")
+        self.monkey_prices = fetch_dict("monkey prices")
         self.monkey_type = dict()
         self.monkey_place = dict()
         self.hero_name = ''
+        self.cur_mode = (None, None)
+        self.cur_hero = None
         self.abilities_repeat = []
         self.ab_repeat_on = False
         self.preferences = fetch_dict("preferences")
@@ -330,8 +333,29 @@ class RatioFit:
             if self.check_edge_cases():
                 self.click(pos_x, pos_y)
 
-    def place(self, monkey, pos_x, pos_y, name):
+    def place(self, monkey, pos_x, pos_y, name, no_delay=False):
         # place the specified monkey at the specified position
+        # first wait for enough money
+        if not no_delay:
+            base_price = 0
+            if monkey == "hero":
+                if self.cur_hero is not None:
+                    for m in self.monkey_prices:
+                        if self.cur_hero in m:
+                            base_price = self.monkey_prices[m]
+            else:
+                base_price = self.monkey_prices[monkey]
+            if self.cur_mode[0] == "easy":
+                price = int(5 * round(0.85 * base_price / 5))
+            elif self.cur_mode[1] == "impoppable":
+                price = int(5 * round(1.2 * base_price / 5))
+            elif self.cur_mode[0] == "hard":
+                price = int(5 * round(1.08 * base_price / 5))
+            else:
+                price = base_price
+            if base_price:
+                self.wait_for_cash(price)
+        # now place
         monkey = monkey.lower()
         position = (float(pos_x), float(pos_y))
         self.monkey_type[name] = monkey
@@ -508,8 +532,10 @@ class RatioFit:
     def open_track(self, track, difficulty, mode, hero=None):
         # opens the specified track into the specified difficulty from the home screen
         # WILL overwrite saves
+        self.cur_mode = (difficulty, mode)
         play_button = self.image_dict["buttons play"]
         if hero is not None:  # select the correct hero if specified
+            self.cur_hero = hero
             skins = []
             for img in self.image_dict:
                 if img.startswith("heroes ") and hero in img:
@@ -531,6 +557,8 @@ class RatioFit:
                 if shows_up(self.image_dict["heroes select"], 2):
                     wait_until_click(self.image_dict["heroes select"])
                 hit_key('escape')
+        else:
+            self.cur_hero = None
         wait_and_static_click(play_button)
         arrow_count = 0
         if "buttons %s" % self.track_difficulties[track] not in self.image_pos_dict:
@@ -841,11 +869,20 @@ def log(txt):
     file.close()
 
 
-def parse(command, prefix, func):
+def parse_args(command, prefix):
+    if '#' in command:
+        command = command[:command.index('#')]
+    command = command.strip().lower()
     if not command.startswith(prefix):
-        return False
+        return []
     sub_command = command[len(prefix):]
-    args = [c.strip("( )") for c in sub_command.split(',')]
+    return [c.strip("( )") for c in sub_command.split(',')]
+
+
+def parse(command, prefix, func):
+    args = parse_args(command, prefix)
+    if not args:
+        return False
     func(*args)
     return True
 
