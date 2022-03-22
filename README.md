@@ -4,7 +4,12 @@ If you want to contribute your scripts to the project join the [discord](https:/
 
 # Dependencies
 BloonsPlayer supports python 3 on Windows and requires
-[PyAutoGui](https://pypi.org/project/PyAutoGUI/), and [scipy](https://pypi.org/project/scipy/).
+[PyAutoGui](https://pypi.org/project/PyAutoGUI/), [PIL](https://pypi.org/project/Pillow/), 
+[scipy](https://pypi.org/project/scipy/), and [OpenCV](https://pypi.org/project/opencv-python/). 
+Run the following command to make sure these packages are all installed.
+```
+pip install -r requirements.txt
+```
 In game, the hotkeys must be set to default, auto start must be on, and placement must be set to drag and drop.
 
 # Usage
