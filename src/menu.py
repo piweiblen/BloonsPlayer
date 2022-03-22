@@ -1,21 +1,26 @@
-from player import fetch_dict, save_dict, parse_args, hit_keys
+from player import *
 import threading
 import pyautogui
-import tkinter.font
-import tkinter.ttk
 import tkinter
+import tkinter.font
+from tkinter import filedialog
+from tkinter import messagebox
 import time
+import os
 
 
 class ChooseOption:
 
-    def __init__(self, title, options, scripts, pos_finder):
-        self.options = options
-        self.scripts = scripts
+    def __init__(self, title, pos_finder):
+        self.options = []
+        self.scripts = {}
         self.pos_finder = pos_finder  # RatioFit class
         self.prefs = fetch_dict("preferences")
         self.difficulties = fetch_dict("map difficulties")
         self.choices = self.prefs["choices"]
+        self.steam_path = steam_path()
+        if not steam_path():
+            self.steam_path = self.prefs["steam path"]
         self.filters = dict()
         self.run = False
         # create root
@@ -61,30 +66,63 @@ class ChooseOption:
         # create menu bars
         self.screen_shot = tkinter.BooleanVar(self.root, self.prefs['screenshot'])
         self.log_times = tkinter.BooleanVar(self.root, self.prefs['log times'])
+        self.crash_p = tkinter.BooleanVar(self.root, self.prefs['crash protection'])
         self.menu_bar = tkinter.Menu(self.root)
         file_menu = tkinter.Menu(self.menu_bar, tearoff=0)
+        file_menu.add_command(label="Refresh Scripts", command=self.get_options)
         file_menu.add_command(label="Exit", command=self.quit)
         filter_menu = tkinter.Menu(self.menu_bar, tearoff=0)
+        self.filter_bools = {}
         self.create_filter_menu(filter_menu, 0, "Map Difficulty",
                                 ["beginner", "intermediate", "advanced", "expert"], self.is_difficulty)
         self.create_filter_menu(filter_menu, 1, "Game Difficulty",
                                 ["easy", "medium", "hard"], self.is_game)
         self.create_filter_menu(filter_menu, 2, "Game Mode",
                                 ["standard", "sandbox", "other"], self.is_mode)
+        filter_menu.add_command(label="Reset All", command=self.clear_all_filters)
         option_menu = tkinter.Menu(self.menu_bar, tearoff=0)
         option_menu.add_checkbutton(label="Take Screenshot On Failure", onvalue=1, offvalue=0,
                                     variable=self.screen_shot, command=self.update_prefs)
         option_menu.add_checkbutton(label="Log Round Times", onvalue=1, offvalue=0,
                                     variable=self.log_times, command=self.update_prefs)
+        option_menu.add_checkbutton(label="Restart Game On Crash", onvalue=1, offvalue=0,
+                                    variable=self.crash_p, command=self.crash_p_toggle)
         # build menu bar structure
         self.menu_bar.add_cascade(label="File", menu=file_menu)
         self.menu_bar.add_cascade(label="Filter", menu=filter_menu)
         self.menu_bar.add_cascade(label="Options", menu=option_menu)
         self.root.config(menu=self.menu_bar)
+        self.get_options()
+
+    def get_options(self):
+        self.options = []
+        self.scripts = {}
+        base_path = os.path.join(data_dir(), "tas")
+        for tas in os.listdir(base_path):
+            if not tas.endswith(".txt"):
+                continue
+            self.options.append(tas[:-4])
+            file = open(os.path.join(base_path, tas))
+            self.scripts[tas[:-4]] = tuple(file.read().split('\n'))
+            file.close()
+        self.perform_filtering()
+
+    def crash_p_toggle(self):
+        if self.crash_p.get():
+            if not self.steam_path:
+                cant = "BloonsPlayer cannot find steam on your system"
+                if messagebox.askyesno(cant, cant+"\nWould you like to browse your files for steam?"):
+                    self.steam_path = filedialog.askopenfilename(initialdir="/",
+                                                                 title="Select steam executable",
+                                                                 filetypes=(("EXE (*.exe)", "*.exe"),))
+                self.crash_p.set(bool(self.steam_path))
+        self.update_prefs()
 
     def update_prefs(self):
         self.prefs['screenshot'] = self.screen_shot.get()
         self.prefs['log times'] = self.log_times.get()
+        self.prefs['crash protection'] = self.crash_p.get()
+        self.prefs['steam path'] = self.steam_path
         self.prefs['choices'] = self.choices
         save_dict('preferences', self.prefs)
         self.pos_finder.update_prefs()
@@ -132,6 +170,7 @@ class ChooseOption:
         self.update_prefs()
 
     def perform_filtering(self):
+        # perform actual filtering
         self.option_listbox.select_clear(0, len(self.opts_var.get()))
         if self.filters:
             self.left_label["text"] = "Filtered TAS Scripts"
@@ -173,9 +212,10 @@ class ChooseOption:
         menu.add_command(label="clear", command=clear)
         self.set_filter(name, opts, bools, det)
         parent.add_cascade(label=name, menu=menu)
+        self.filter_bools[name] = bools
 
     def set_filter(self, name, opts, bools, det):
-        # perform actual filtering
+        # handle a filter change
         if bools[0].get():
             if det in self.filters:
                 del self.filters[det]
@@ -187,6 +227,9 @@ class ChooseOption:
         else:
             self.filters[det] = [opts[f] for f in range(len(opts)) if bools[f+1].get()]
             self.perform_filtering()
+        self.save_filters(name, bools)
+
+    def save_filters(self, name, bools):
         # update and save preferences
         if all(b.get() for b in bools):
             if name in self.prefs["filters"]:
@@ -194,6 +237,16 @@ class ChooseOption:
         else:
             self.prefs["filters"][name] = tuple(b.get() for b in bools)
         self.update_prefs()
+
+    def clear_all_filters(self):
+        for name in self.filter_bools:
+            for b in self.filter_bools[name]:
+                b.set(True)
+            self.save_filters(name, self.filter_bools[name])
+        self.filters = {}
+        self.prefs["filters"] = {}
+        self.update_prefs()
+        self.perform_filtering()
 
     def is_difficulty(self, difficulty, option):
         open_args = parse_args(self.scripts[option][0], "open")
@@ -226,7 +279,7 @@ class ChooseOption:
         self.quit()
 
     def get_choice(self):
-        return self.choices
+        return [self.scripts[c] for c in self.choices]
 
     def display_pos(self):
         previous = ""

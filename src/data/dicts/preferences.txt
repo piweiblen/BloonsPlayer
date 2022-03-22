@@ -1,6 +1,8 @@
 {
 'screenshot': False,
 'log times': False,
+'crash protection': False,
+'steam path': False,
 'choices': [],
 'filters': {}
 }

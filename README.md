@@ -1,4 +1,4 @@
-# BloonsPlayer 0.2.0
+# BloonsPlayer 0.2.1
 BloonsPlayer is a screen scraping tool for scripting and playing Bloons Tower Defense 6. 
 If you want to contribute your scripts to the project join the [discord](https://discord.gg/uJfudc3RfV).
 
@@ -39,13 +39,14 @@ See also the tas directory for more examples.
 * [place](#placing-a-tower)
 * [upgrade](#upgrades)
 * [delays](#delays)
-* [click](#click)
-* [move](#move)
 * [ability](#activated-abilities)
 * [target](#changing-targeting)
 * [priority](#changing-priority)
 * [sell](#selling-a-tower)
 * [remove](#removing-an-obstacle)
+* [click](#click)
+* [move](#move)
+* [change speed](#changing-speed)
 
 ### First command, opening the track
 The first command should be the "open" command and should follow the following format.
@@ -277,4 +278,10 @@ The "move" command simply moves the mouse to the given relative coordinates.
 This can be used to collect money, or anything really.
 ```
 move (0.13, 0.37)  # move to (0.13, 0.37)
+```
+
+### Changing speed
+The "change speed" command changes the gameplay speed by hitting space.
+```
+change speed
 ```

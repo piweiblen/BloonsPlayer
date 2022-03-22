@@ -101,6 +101,17 @@ def releasekey(hexKeyCode):
     user32.SendInput(1, ctypes.byref(x), ctypes.sizeof(x))
 
 
+def steam_path():
+    """ Get the absolute path to the steam executable"""
+    pf = os.getenv("PROGRAMFILES")
+    if pf is None:
+        return None
+    path = os.path.join(pf, r"Steam\steam.exe")
+    if os.path.exists(path):
+        return path
+    return None
+
+
 def resource_path(relative_path):
     """ Get absolute path to resource, works for dev and for PyInstaller """
     try:
@@ -174,11 +185,11 @@ class BloonsError(Exception):
 
 class RatioFit:
 
-    def __init__(self, screen_size, delay):
-        self.delay = delay
+    def __init__(self):
+        self.delay = 0.3
         # calculate the position of the playing field
         ratio = 19/11
-        x, y = screen_size
+        x, y = pyautogui.size()
         if x / y == ratio:
             self.offset = (0, 0)
             self.width = x
@@ -214,6 +225,7 @@ class RatioFit:
         self.abilities_repeat = []
         self.ab_repeat_on = False
         self.preferences = fetch_dict("preferences")
+        self.command_time = time.time()
         # prep vars fo more detailed logging
         self.time_log = [""]
         for f in range(100):
@@ -312,6 +324,10 @@ class RatioFit:
                 return True
             else:
                 return False
+
+    def wait_until_click(self, image):
+        while not click_image(image):
+            self.check_edge_cases()
 
     def move_to(self, pos_x, pos_y, duration=0):
         position = (float(pos_x), float(pos_y))
@@ -422,7 +438,7 @@ class RatioFit:
             nums = self.get_numbers()
             if len(nums) > 2 and nums[2] == next_round:
                 now = time.time()
-                secs = int(round(now - last_time))
+                secs = round(now - last_time, 1)
                 last_time = now
                 to_add = str(secs % 60).zfill(2)
                 if secs > 60:
@@ -534,6 +550,8 @@ class RatioFit:
         # WILL overwrite saves
         self.cur_mode = (difficulty, mode)
         play_button = self.image_dict["buttons play"]
+        while not is_present(play_button):
+            click_image(self.image_dict["edge cases start"])
         if hero is not None:  # select the correct hero if specified
             self.cur_hero = hero
             skins = []
@@ -544,9 +562,8 @@ class RatioFit:
             scaled_skins = []
             for img in skins:
                 scaled_skins.append(img.resize((int(img.width * scale), int(img.height * scale))))
-            wait_to_see(play_button)
             if not any_present(scaled_skins):
-                wait_until_click(self.image_dict["heroes heroes"])
+                self.wait_until_click(self.image_dict["heroes heroes"])
                 direct = 1
                 while not any(click_image(img) for img in skins):
                     self.move_to(0.5, 0.95)
@@ -555,7 +572,7 @@ class RatioFit:
                     direct *= -1
                     time.sleep(0.3)
                 if shows_up(self.image_dict["heroes select"], 2):
-                    wait_until_click(self.image_dict["heroes select"])
+                    self.wait_until_click(self.image_dict["heroes select"])
                 hit_key('escape')
         else:
             self.cur_hero = None
@@ -574,13 +591,13 @@ class RatioFit:
                     time.sleep(1)
                     if is_present(self.image_dict["buttons %s" % difficulty]):
                         break
-        wait_until_click(self.image_dict["buttons %s" % difficulty])
-        wait_until_click(self.image_dict["buttons %s" % mode])
+        self.wait_until_click(self.image_dict["buttons %s" % difficulty])
+        self.wait_until_click(self.image_dict["buttons %s" % mode])
         if shows_up(self.image_dict["edge cases overwrite"], 0.5):
-            wait_until_click(self.image_dict["buttons OK"])
+            self.wait_until_click(self.image_dict["buttons OK"])
             time.sleep(1)
         if mode in ["chimps", "impoppable"]:
-            wait_until_click(self.image_dict["buttons OK"])
+            self.wait_until_click(self.image_dict["buttons OK"])
             time.sleep(1)
             return None
         if mode == "apopalypse":
@@ -597,24 +614,33 @@ class RatioFit:
         # function checks for and handles various edge cases
         # first check if we've leveled up
         if click_image(self.image_dict["edge cases LEVEL UP"]):
-            log("\nLevel up ")
-            if shows_up(self.image_dict["edge cases monkey knowledge"], 1):
+            log("\nLevel up")
+            if shows_up(self.image_dict["edge cases monkey knowledge"], 10):
                 click_image(self.image_dict["edge cases monkey knowledge"])
             time.sleep(self.delay)
-            hit_keys('  ')
+            hit_keys('  ', 0.5)
             return True
         # then check for tas failure
         if is_present(self.image_dict["edge cases restart"]):
             if self.preferences["screenshot"]:
-                wait_until_click(self.image_dict["edge cases review"])
+                self.wait_until_click(self.image_dict["edge cases review"])
                 time.sleep(1)
                 cur_time = time.strftime("%Y-%m-%d-%H-%M-%S")
                 log("\nScreenshot taken "+cur_time)
                 pyautogui.screenshot(os.path.join(data_dir(), "log", cur_time+".png"))
                 hit_key("escape")
             self.cancel_repeat_keys()
-            wait_until_click(self.image_dict["buttons home"])
+            self.wait_until_click(self.image_dict["buttons home"])
             raise BloonsError("TAS Failed")
+        # then check for the game having crashed (1 hour since last command)
+        if self.preferences["crash protection"] and self.preferences["steam path"]:
+            if time.time() - self.command_time > 3600:
+                log("\nGame crashed")
+                os.system("TASKKILL /F /IM bloonstd6.exe")
+                time.sleep(10)
+                os.system('"%s" steam://rungameid/960090' % self.preferences["steam path"])
+                self.wait_until_click(self.image_dict["edge cases start"])
+                raise BloonsError("TAS Failed")
         return False
 
     def wait_and_check_edges(self, secs):
@@ -659,7 +685,7 @@ class RatioFit:
             click_image(self.image_dict["buttons insta-monkey"])  # for chimps/impoppable
             self.check_edge_cases()
         time.sleep(self.delay)
-        wait_until_click(next_but)
+        self.wait_until_click(next_but)
         self.cancel_repeat_keys()
         time.sleep(self.delay)
         home = self.image_dict["buttons home"]
@@ -676,7 +702,7 @@ class RatioFit:
             insta_y = self.image_dict["edge cases insta monkey yellow"]
             cont = self.image_dict["edge cases cont"]
             back = self.image_dict["edge cases back"]
-            wait_until_click(reward)
+            self.wait_until_click(reward)
             while not is_present(cont):
                 if not any(click_image(f) for f in [instas, insta_g, insta_b, insta_p, insta_y]):
                     time.sleep(1)
@@ -689,6 +715,7 @@ class RatioFit:
 
     def do_command(self, command):
         # interpret and execute a command
+        self.command_time = time.time()
         # first do a bit of cleanup
         if '#' in command:
             command = command[:command.index('#')]
@@ -711,7 +738,8 @@ class RatioFit:
                 "target": self.change_targeting,
                 "priority": self.toggle_priority,
                 "sell": self.sell_tower,
-                "remove": self.remove_obstacle}
+                "remove": self.remove_obstacle,
+                "change speed": lambda *x: hit_key(' ')}
         for prefix in opts:
             if parse(command, prefix, opts[prefix]):
                 break
@@ -822,12 +850,6 @@ def click_image(image, delay=0.):
     pyautogui.click(*coords)
     time.sleep(delay)
     return True
-
-
-def wait_until_click(image):
-    # function to click on an image, or wait until the image appears and then click on it
-    while not click_image(image):
-        pass
 
 
 def shows_up(image, secs):
