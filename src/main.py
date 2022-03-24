@@ -10,7 +10,7 @@ def main():
     print('Log file located at:')
     print(log_file())
     # get track choice
-    chooser = ChooseOption('BloonsPlayer v0.2.1', screen)
+    chooser = ChooseOption('BloonsPlayer v0.2.2', screen)
     chooser.show()
     choices = chooser.get_choice()
     if not choices or not chooser.run:

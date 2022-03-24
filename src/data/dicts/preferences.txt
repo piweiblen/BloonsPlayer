@@ -2,7 +2,8 @@
 'screenshot': False,
 'log times': False,
 'crash protection': False,
-'steam path': False,
+'steam path': '',
+'theme': 'dark',
 'choices': [],
 'filters': {}
 }

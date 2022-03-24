@@ -1,0 +1,9 @@
+open monkey meadow, easy, deflation
+place bomb, (0.37698, 0.47477), recurse, no delay
+upgrade recurse, 1, 1, 3, 3, 3, 3
+place spikes, (0.55789, 0.48468), mines, no delay
+upgrade mines, 2, 2, 1, 1, 1, 1
+place dart, (0.56332, 0.38378), last, no delay
+upgrade last, 2, 2, 3, 3, 3
+change speed
+change speed

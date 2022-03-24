@@ -576,7 +576,7 @@ class RatioFit:
                 hit_key('escape')
         else:
             self.cur_hero = None
-        wait_and_static_click(play_button)
+        self.wait_and_static_click(play_button)
         arrow_count = 0
         if "buttons %s" % self.track_difficulties[track] not in self.image_pos_dict:
             time.sleep(1)
@@ -596,12 +596,12 @@ class RatioFit:
         if shows_up(self.image_dict["edge cases overwrite"], 0.5):
             self.wait_until_click(self.image_dict["buttons OK"])
             time.sleep(1)
-        if mode in ["chimps", "impoppable"]:
+        if mode in ["chimps", "impoppable", "deflation"]:
             self.wait_until_click(self.image_dict["buttons OK"])
             time.sleep(1)
             return None
         if mode == "apopalypse":
-            wait_and_static_click(self.image_dict["edge cases apop play"])
+            self.wait_and_static_click(self.image_dict["edge cases apop play"])
             time.sleep(1)
             return None
         while not is_loading():  # make sure we see the loading screen
@@ -691,7 +691,7 @@ class RatioFit:
         home = self.image_dict["buttons home"]
         reward = self.image_dict["edge cases collect"]
         play_button = self.image_dict["buttons play"]
-        static_click_and_confirm(home, [reward, play_button])
+        self.static_click_and_confirm(home, [reward, play_button])
         time.sleep(self.delay)
         # special event edge case
         if is_present(reward):
@@ -705,6 +705,7 @@ class RatioFit:
             self.wait_until_click(reward)
             while not is_present(cont):
                 if not any(click_image(f) for f in [instas, insta_g, insta_b, insta_p, insta_y]):
+                    self.check_edge_cases()
                     time.sleep(1)
                     pyautogui.click(*self.convert_pos((0.5, 0.5)))
                     if click_image(back):
@@ -762,7 +763,9 @@ class RatioFit:
             newt.start()
         self.do_command(parameters[1])  # should place the first tower
         log('\nStart (hit space twice)')
-        if "apopalypse" in parameters[0]:  # apopalypse runs on its own
+        if "deflation" in parameters[0]:  # deflation needs more than one command before starting
+            pass
+        elif "apopalypse" in parameters[0]:  # apopalypse runs on its own
             hit_keys(' ', self.delay)
         else:
             hit_keys('  ', self.delay)
@@ -780,26 +783,8 @@ class RatioFit:
         while threading.active_count() != 1:
             pass
 
-
-def wait_and_static_click(image, threshold=4):
-    # wait for an image to appear, then click when it is not moving
-    prev_spot = (0, -9000)
-    spot = (-9000,  0)
-    while (spot[0]-prev_spot[0])**2 + (spot[1]-prev_spot[1])**2 > threshold:
-        location = pyautogui.locateCenterOnScreen(image, confidence=0.85)
-        if location is not None:
-            prev_spot = spot
-            spot = location
-    pyautogui.click(*spot)
-
-
-def static_click_and_confirm(image, confirm_images, threshold=4):
-    # function to click an image on screen
-    # makes sure the image is not moving when clicked
-    # will continue to click image until confirmation image is seen
-    if type(confirm_images) != list:
-        confirm_images = [confirm_images]
-    while True:
+    def wait_and_static_click(self, image, threshold=4):
+        # wait for an image to appear, then click when it is not moving
         prev_spot = (0, -9000)
         spot = (-9000,  0)
         while (spot[0]-prev_spot[0])**2 + (spot[1]-prev_spot[1])**2 > threshold:
@@ -807,11 +792,30 @@ def static_click_and_confirm(image, confirm_images, threshold=4):
             if location is not None:
                 prev_spot = spot
                 spot = location
+            self.check_edge_cases()
+        pyautogui.click(*spot)
+
+    def static_click_and_confirm(self, image, confirm_images, threshold=4):
+        # function to click an image on screen
+        # makes sure the image is not moving when clicked
+        # will continue to click image until confirmation image is seen
+        if type(confirm_images) != list:
+            confirm_images = [confirm_images]
+        while True:
+            prev_spot = (0, -9000)
+            spot = (-9000,  0)
+            while (spot[0]-prev_spot[0])**2 + (spot[1]-prev_spot[1])**2 > threshold:
+                location = pyautogui.locateCenterOnScreen(image, confidence=0.85)
+                if location is not None:
+                    prev_spot = spot
+                    spot = location
+                if any_present(confirm_images):
+                    break
+                self.check_edge_cases()
             if any_present(confirm_images):
                 break
-        if any_present(confirm_images):
-            break
-        pyautogui.click(*spot)
+            self.check_edge_cases()
+            pyautogui.click(*spot)
 
 
 def is_present(image):
@@ -826,18 +830,6 @@ def any_present(images):
         if is_present(image):
             return True
     return False
-
-
-def wait_to_see(image):
-    # function to pause execution until a particular image appears
-    while not is_present(image):
-        pass
-
-
-def wait_until_gone(image):
-    # function to pause execution until a particular image no longer appears
-    while is_present(image):
-        pass
 
 
 def click_image(image, delay=0.):

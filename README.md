@@ -1,4 +1,4 @@
-# BloonsPlayer 0.2.1
+# BloonsPlayer 0.2.2
 BloonsPlayer is a screen scraping tool for scripting and playing Bloons Tower Defense 6. 
 If you want to contribute your scripts to the project join the [discord](https://discord.gg/uJfudc3RfV).
 
@@ -35,7 +35,8 @@ The arguments of each command should be separated by commas, parentheses and spa
 Commands are not case-sensitive.
 The first command must be top open the track with arguments of track name, difficulty, and mode respectively. 
 The second command and onward do not have special requirements, 
-but it should be noted that after the second command is executed the tas will start the game, 
+but it should be noted that after the second command is executed the tas will start the game 
+(unless game mode is deflation), 
 meaning usually the second command will be to place a tower that can be immediately afforded.
 
 The following is a comprehensive list of the types of commands and how they are used. 

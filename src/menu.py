@@ -28,49 +28,53 @@ class ChooseOption:
         self.root.title(title)
         self.root.geometry("700x500")
         # set up frame
-        frame = tkinter.Frame(self.root)
+        self.frame = tkinter.Frame(self.root)
         self.root.rowconfigure(0, weight=1)
         self.root.columnconfigure(0, weight=1)
-        frame.grid(row=0, column=0, sticky="news")
-        frame.columnconfigure(tuple(range(3)), weight=1)
-        frame.rowconfigure(tuple(range(10)), weight=1)
+        self.frame.grid(row=0, column=0, sticky="news")
+        self.frame.columnconfigure(tuple(range(3)), weight=1)
+        self.frame.rowconfigure(tuple(range(10)), weight=1)
+
         # set up list boxes
-        self.left_label = tkinter.Label(frame, text="All TAS scripts", borderwidth=10)
+        self.left_label = tkinter.Label(self.frame, text="All TAS scripts", borderwidth=10)
         self.left_label.grid(row=0, column=0)
-        self.right_label = tkinter.Label(frame, text="Scripts to run", borderwidth=10)
+        self.right_label = tkinter.Label(self.frame, text="Scripts to run", borderwidth=10)
         self.right_label.grid(row=0, column=2)
         self.opts_var = tkinter.StringVar(value=self.options)
-        self.option_listbox = tkinter.Listbox(frame, listvariable=self.opts_var, selectmode="extended")
+        self.option_listbox = tkinter.Listbox(self.frame, listvariable=self.opts_var, selectmode="extended")
         self.option_listbox.grid(row=1, column=0, rowspan=8, sticky="news")
         self.choice_var = tkinter.StringVar(value=self.prefs["choices"])
-        self.choice_listbox = tkinter.Listbox(frame, listvariable=self.choice_var, selectmode="extended")
+        self.choice_listbox = tkinter.Listbox(self.frame, listvariable=self.choice_var, selectmode="extended")
         self.choice_listbox.grid(row=1, column=2, rowspan=8, sticky="news")
         big_font = tkinter.font.Font(size=30)
         self.pixel = tkinter.PhotoImage(width=1, height=1)
         kwargs = {"font": big_font, "image": self.pixel, "width": 40, "height": 40, "compound": "center"}
-        right_button = tkinter.Button(frame, text="⏵", command=self.move_right, **kwargs)
-        right_button.grid(row=3, column=1)
-        left_button = tkinter.Button(frame, text="⏴", command=self.move_left, **kwargs)
-        left_button.grid(row=4, column=1)
-        up_button = tkinter.Button(frame, text="⏶", command=self.move_up, **kwargs)
-        up_button.grid(row=5, column=1)
-        down_button = tkinter.Button(frame, text="⏷", command=self.move_down, **kwargs)
-        down_button.grid(row=6, column=1)
-        go_button = tkinter.Button(frame, text="GO", command=self.go, padx=5, pady=5)
-        go_button.grid(row=9, column=2, padx=5, pady=5)
+        self.right_button = tkinter.Button(self.frame, text="⏵", command=self.move_right, **kwargs)
+        self.right_button.grid(row=3, column=1)
+        self.left_button = tkinter.Button(self.frame, text="⏴", command=self.move_left, **kwargs)
+        self.left_button.grid(row=4, column=1)
+        self.up_button = tkinter.Button(self.frame, text="⏶", command=self.move_up, **kwargs)
+        self.up_button.grid(row=5, column=1)
+        self.down_button = tkinter.Button(self.frame, text="⏷", command=self.move_down, **kwargs)
+        self.down_button.grid(row=6, column=1)
+        self.go_button = tkinter.Button(self.frame, text="GO", command=self.go, padx=5, pady=5)
+        self.go_button.grid(row=9, column=2, padx=5, pady=5)
         # create mouse position utility
-        self.print_button = tkinter.Button(frame, text="print mouse position", command=self.position_info,
+        self.print_button = tkinter.Button(self.frame, text="print mouse position", command=self.position_info,
                                            padx=5, pady=5)
         self.print_button.grid(row=9, column=0, padx=5, pady=5)
         self.toggle_pos = False
+
         # create menu bars
         self.screen_shot = tkinter.BooleanVar(self.root, self.prefs['screenshot'])
         self.log_times = tkinter.BooleanVar(self.root, self.prefs['log times'])
         self.crash_p = tkinter.BooleanVar(self.root, self.prefs['crash protection'])
         self.menu_bar = tkinter.Menu(self.root)
+        # file menu
         file_menu = tkinter.Menu(self.menu_bar, tearoff=0)
         file_menu.add_command(label="Refresh Scripts", command=self.get_options)
         file_menu.add_command(label="Exit", command=self.quit)
+        # filter menu
         filter_menu = tkinter.Menu(self.menu_bar, tearoff=0)
         self.filter_bools = {}
         self.create_filter_menu(filter_menu, 0, "Map Difficulty",
@@ -80,6 +84,7 @@ class ChooseOption:
         self.create_filter_menu(filter_menu, 2, "Game Mode",
                                 ["standard", "sandbox", "other"], self.is_mode)
         filter_menu.add_command(label="Reset All", command=self.clear_all_filters)
+        # options menu
         option_menu = tkinter.Menu(self.menu_bar, tearoff=0)
         option_menu.add_checkbutton(label="Take Screenshot On Failure", onvalue=1, offvalue=0,
                                     variable=self.screen_shot, command=self.update_prefs)
@@ -87,12 +92,61 @@ class ChooseOption:
                                     variable=self.log_times, command=self.update_prefs)
         option_menu.add_checkbutton(label="Restart Game On Crash", onvalue=1, offvalue=0,
                                     variable=self.crash_p, command=self.crash_p_toggle)
+        # style menu
+        style_menu = tkinter.Menu(self.menu_bar, tearoff=0)
+        self.styles = {"light": ("#f0f0f0", "#ffffff", "#000000", "#0078d7"),
+                       "dark": ("#404040", "#202020", "#ffffff", "#497ba1"),
+                       "amoled": ("#000000", "#101010", "#f0f0f0", "#c02020")}
+        self.create_single_select_menu(style_menu, self.styles.keys(), self.set_style, self.prefs['theme'])
+        self.set_style(self.prefs['theme'])
         # build menu bar structure
         self.menu_bar.add_cascade(label="File", menu=file_menu)
         self.menu_bar.add_cascade(label="Filter", menu=filter_menu)
         self.menu_bar.add_cascade(label="Options", menu=option_menu)
+        self.menu_bar.add_cascade(label="Themes", menu=style_menu)
         self.root.config(menu=self.menu_bar)
         self.get_options()
+
+    def set_style(self, name):
+        back, more_back, front, accent = self.styles[name]
+        self.prefs['theme'] = name
+        self.update_prefs()
+        standard = {"bg": back, "fg": front}
+        button = {"bg": back, "fg": front, "activebackground": more_back, "activeforeground": front}
+        box = {"bg": more_back, "fg": front, "selectbackground": accent, "selectforeground": more_back}
+        menu_style = {"bd": 0, "bg": back, "fg": front, "activebackground": accent,
+                      "activeforeground": more_back, "selectcolor": front}
+        self.frame.config(bg=back)
+        self.right_label.config(**standard)
+        self.left_label.config(**standard)
+        self.right_button.config(**button)
+        self.left_button.config(**button)
+        self.up_button.config(**button)
+        self.down_button.config(**button)
+        self.print_button.config(**button)
+        self.go_button.config(**button)
+        self.choice_listbox.config(**box)
+        self.option_listbox.config(**box)
+
+        def recurse_set_menu(menu):
+            menu.config(**menu_style)
+            for c in menu.children:
+                child = menu.nametowidget(c)
+                recurse_set_menu(child)
+
+        recurse_set_menu(self.menu_bar)
+
+    def create_single_select_menu(self, parent, options, func, initial):
+        options = sorted(options)
+        bools = [tkinter.BooleanVar(self.root, False) for f in range(len(options))]
+        bools[options.index(initial)].set(True)
+        for f in range(len(options)):
+            def command(index=f):
+                for g in range(len(options)):
+                    bools[g].set(False)
+                bools[index].set(True)
+                func(options[index])
+            parent.add_checkbutton(label=options[f], onvalue=1, offvalue=0, variable=bools[f], command=command)
 
     def get_options(self):
         self.options = []
