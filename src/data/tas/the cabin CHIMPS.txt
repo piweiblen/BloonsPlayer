@@ -1,0 +1,22 @@
+open the cabin, hard, chimps
+place sub, (0.50362, 0.22432), monar, no delay
+place tack, (0.39507, 0.14054), zone, no delay
+upgrade zone, 3, 3, 1, 1
+place spikes, (0.32572, 0.37658), perma
+upgrade monar, 1, 1, 2, 2
+upgrade perma, 2, 2, 3, 3
+target perma, 3
+upgrade zone, 3
+place heli, (0.17436, 0.20811), chopper
+upgrade chopper, 1, 1, 3, 3, 1
+place village, (0.31487, 0.25766), mib
+upgrade mib, 1, 1, 2, 2
+upgrade perma, 3, 3
+upgrade zone, 3
+upgrade monar, 2
+upgrade chopper, 1
+upgrade zone, 3
+upgrade chopper, 1
+upgrade mib, 2
+place glue, (0.26542, 0.16577), super
+upgrade super, 2, 2, 3, 3, 3, 3 ,3

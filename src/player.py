@@ -598,7 +598,7 @@ class RatioFit:
             time.sleep(1)
         if mode in ["chimps", "impoppable", "deflation"]:
             self.wait_until_click(self.image_dict["buttons OK"])
-            time.sleep(1)
+            time.sleep(2)
             return None
         if mode == "apopalypse":
             self.wait_and_static_click(self.image_dict["edge cases apop play"])
@@ -636,6 +636,7 @@ class RatioFit:
         if self.preferences["crash protection"] and self.preferences["steam path"]:
             if time.time() - self.command_time > 3600:
                 log("\nGame crashed")
+                self.command_time = time.time()
                 os.system("TASKKILL /F /IM bloonstd6.exe")
                 time.sleep(10)
                 os.system('"%s" steam://rungameid/960090' % self.preferences["steam path"])
