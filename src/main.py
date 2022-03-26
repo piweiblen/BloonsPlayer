@@ -9,8 +9,12 @@ def main():
     # print log file path
     print('Log file located at:')
     print(log_file())
+    # get version
+    file = open(os.path.join(data_dir(), "version.txt"))
+    version = file.read()
+    file.close()
     # get track choice
-    chooser = ChooseOption('BloonsPlayer v0.2.3', screen)
+    chooser = ChooseOption('BloonsPlayer v' + version, screen)
     chooser.show()
     choices = chooser.get_choice()
     if not choices or not chooser.run:

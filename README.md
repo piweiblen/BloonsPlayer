@@ -1,4 +1,4 @@
-# BloonsPlayer 0.2.3
+# BloonsPlayer
 BloonsPlayer is a screen scraping tool for scripting and playing Bloons Tower Defense 6. 
 If you want to contribute your scripts to the project join the [discord](https://discord.gg/uJfudc3RfV).
 

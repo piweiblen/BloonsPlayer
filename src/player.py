@@ -327,7 +327,7 @@ class RatioFit:
 
     def wait_until_click(self, image):
         while not click_image(image):
-            self.check_edge_cases()
+            self.check_edge_cases(time_only=True)
 
     def move_to(self, pos_x, pos_y, duration=0):
         position = (float(pos_x), float(pos_y))
@@ -610,10 +610,10 @@ class RatioFit:
             pass
         time.sleep(self.delay)
 
-    def check_edge_cases(self):
+    def check_edge_cases(self, time_only=False):
         # function checks for and handles various edge cases
         # first check if we've leveled up
-        if click_image(self.image_dict["edge cases LEVEL UP"]):
+        if not time_only and click_image(self.image_dict["edge cases LEVEL UP"]):
             log("\nLevel up")
             if shows_up(self.image_dict["edge cases monkey knowledge"], 10):
                 click_image(self.image_dict["edge cases monkey knowledge"])
@@ -621,7 +621,7 @@ class RatioFit:
             hit_keys('  ', 0.5)
             return True
         # then check for tas failure
-        if is_present(self.image_dict["edge cases restart"]):
+        if not time_only and is_present(self.image_dict["edge cases restart"]):
             if self.preferences["screenshot"]:
                 self.wait_until_click(self.image_dict["edge cases review"])
                 time.sleep(1)
