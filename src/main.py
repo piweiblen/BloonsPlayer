@@ -17,6 +17,8 @@ def main():
     chooser = ChooseOption('BloonsPlayer v' + version, screen)
     chooser.show()
     choices = chooser.get_choice()
+    if screen.egg_mode and not choices:
+        choices.append(None)
     if not choices or not chooser.run:
         print("No selection made")
         return None

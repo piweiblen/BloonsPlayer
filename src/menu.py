@@ -174,14 +174,18 @@ class ChooseOption:
             file.close()
         self.perform_filtering()
 
+    def steam_prompt(self):
+        cant = "BloonsPlayer cannot find steam on your system"
+        if messagebox.askyesno(cant, cant+"\nWould you like to browse your files for steam?"):
+            self.prefs['steam path'] = filedialog.askopenfilename(initialdir="/",
+                                                         title="Select steam executable",
+                                                         filetypes=(("EXE (*.exe)", "*.exe"),))
+        self.update_prefs()
+
     def crash_p_toggle(self):
         if self.crash_p.get():
             if not self.prefs['steam path']:
-                cant = "BloonsPlayer cannot find steam on your system"
-                if messagebox.askyesno(cant, cant+"\nWould you like to browse your files for steam?"):
-                    self.prefs['steam path'] = filedialog.askopenfilename(initialdir="/",
-                                                                 title="Select steam executable",
-                                                                 filetypes=(("EXE (*.exe)", "*.exe"),))
+                self.steam_prompt()
                 self.crash_p.set(bool(self.prefs['steam path']))
         self.update_prefs()
 
@@ -352,6 +356,8 @@ class ChooseOption:
     def launch(self):
         if self.prefs['steam path']:
             self.pos_finder.launch_bloons()
+        else:
+            self.steam_prompt()
 
     def egg_mode(self):
         self.run = True
