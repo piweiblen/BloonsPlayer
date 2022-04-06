@@ -599,8 +599,8 @@ class RatioFit:
                     best_track = None
                     for track in self.egg_dict:
                         t_pos = pyautogui.locateCenterOnScreen(self.image_dict["tracks %s" % track], confidence=0.85)
-                        if t_pos is not None:
-                            new_dist = (pos[0] - t_pos[0]) * abs(pos[0] - t_pos[0]) + (t_pos[1] - pos[1])**2
+                        if t_pos is not None and t_pos[0] < pos[0]:
+                            new_dist = (t_pos[0] - pos[0])**2 + (t_pos[1] - pos[1])**2
                             if best_track is None or new_dist < best_dist:
                                 best_track = track
                                 best_dist = new_dist

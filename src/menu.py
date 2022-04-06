@@ -360,11 +360,8 @@ class ChooseOption:
             self.steam_prompt()
 
     def egg_mode(self):
-        self.run = True
-        if self.prefs['crash protection']:
-            self.launch()
         self.pos_finder.egg_mode = True
-        self.quit()
+        self.go()
 
     def get_choice(self):
         return [self.scripts[c] for c in self.choices]
