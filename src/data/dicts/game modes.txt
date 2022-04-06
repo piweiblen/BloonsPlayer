@@ -1,0 +1,15 @@
+{
+"standard": ["easy", "medium", "hard"],
+"sandbox": ["easy", "medium", "hard"],
+"primary only": ["easy"],
+"deflation": ["easy"],
+"military only": ["medium"],
+"apopalypse": ["medium"],
+"reverse": ["medium"],
+"magic monkeys only": ["hard"],
+"double hp moabs": ["hard"],
+"half cash": ["hard"],
+"alternate bloons rounds": ["hard"],
+"impoppable": ["hard"],
+"chimps": ["hard"]
+}

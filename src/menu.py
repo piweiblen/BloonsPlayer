@@ -17,10 +17,10 @@ class ChooseOption:
         self.pos_finder = pos_finder  # RatioFit class
         self.prefs = fetch_dict("preferences")
         self.difficulties = fetch_dict("map difficulties")
+        self.game_modes = fetch_dict("game modes")
         self.choices = self.prefs["choices"]
-        self.steam_path = steam_path()
-        if not steam_path():
-            self.steam_path = self.prefs["steam path"]
+        if not self.prefs['steam path']:
+            self.prefs['steam path'] = steam_path()
         self.filters = dict()
         self.run = False
         # create root
@@ -33,7 +33,7 @@ class ChooseOption:
         self.root.columnconfigure(0, weight=1)
         self.frame.grid(row=0, column=0, sticky="news")
         self.frame.columnconfigure(tuple(range(3)), weight=1)
-        self.frame.rowconfigure(tuple(range(10)), weight=1)
+        self.frame.rowconfigure(tuple(range(11)), weight=1)
 
         # set up list boxes
         self.left_label = tkinter.Label(self.frame, text="All TAS scripts", borderwidth=10)
@@ -49,6 +49,7 @@ class ChooseOption:
         big_font = tkinter.font.Font(size=30)
         self.pixel = tkinter.PhotoImage(width=1, height=1)
         kwargs = {"font": big_font, "image": self.pixel, "width": 40, "height": 40, "compound": "center"}
+        # listbox manip buttons
         self.right_button = tkinter.Button(self.frame, text="⏵", command=self.move_right, **kwargs)
         self.right_button.grid(row=3, column=1)
         self.left_button = tkinter.Button(self.frame, text="⏴", command=self.move_left, **kwargs)
@@ -57,6 +58,7 @@ class ChooseOption:
         self.up_button.grid(row=5, column=1)
         self.down_button = tkinter.Button(self.frame, text="⏷", command=self.move_down, **kwargs)
         self.down_button.grid(row=6, column=1)
+        # go button
         self.go_button = tkinter.Button(self.frame, text="GO", command=self.go, padx=5, pady=5)
         self.go_button.grid(row=9, column=2, padx=5, pady=5)
         # create mouse position utility
@@ -64,6 +66,12 @@ class ChooseOption:
                                            padx=5, pady=5)
         self.print_button.grid(row=9, column=0, padx=5, pady=5)
         self.toggle_pos = False
+        # launch btd6 button
+        self.launch_button = tkinter.Button(self.frame, text="launch btd6", command=self.launch, padx=5, pady=5)
+        self.launch_button.grid(row=10, column=0, padx=5, pady=5)
+        # collection event button
+        self.easter_button = tkinter.Button(self.frame, text="egg mode", command=self.egg_mode, padx=5, pady=5)
+        self.easter_button.grid(row=10, column=2, padx=5, pady=5)
 
         # create menu bars
         self.screen_shot = tkinter.BooleanVar(self.root, self.prefs['screenshot'])
@@ -77,12 +85,14 @@ class ChooseOption:
         # filter menu
         filter_menu = tkinter.Menu(self.menu_bar, tearoff=0)
         self.filter_bools = {}
-        self.create_filter_menu(filter_menu, 0, "Map Difficulty",
+        self.create_filter_menu(filter_menu, "Map Difficulty",
                                 ["beginner", "intermediate", "advanced", "expert"], self.is_difficulty)
-        self.create_filter_menu(filter_menu, 1, "Game Difficulty",
+        self.create_filter_menu(filter_menu, "Map Name",
+                                [m for m in self.difficulties], self.is_map)
+        self.create_filter_menu(filter_menu, "Game Difficulty",
                                 ["easy", "medium", "hard"], self.is_game)
-        self.create_filter_menu(filter_menu, 2, "Game Mode",
-                                ["standard", "sandbox", "other"], self.is_mode)
+        self.create_filter_menu(filter_menu, "Game Mode",
+                                [m for m in self.game_modes], self.is_mode)
         filter_menu.add_command(label="Reset All", command=self.clear_all_filters)
         # options menu
         option_menu = tkinter.Menu(self.menu_bar, tearoff=0)
@@ -106,6 +116,7 @@ class ChooseOption:
         self.menu_bar.add_cascade(label="Themes", menu=style_menu)
         self.root.config(menu=self.menu_bar)
         self.get_options()
+        self.update_prefs()
 
     def set_style(self, name):
         back, more_back, front, accent = self.styles[name]
@@ -125,6 +136,8 @@ class ChooseOption:
         self.down_button.config(**button)
         self.print_button.config(**button)
         self.go_button.config(**button)
+        self.launch_button.config(**button)
+        self.easter_button.config(**button)
         self.choice_listbox.config(**box)
         self.option_listbox.config(**box)
 
@@ -163,20 +176,19 @@ class ChooseOption:
 
     def crash_p_toggle(self):
         if self.crash_p.get():
-            if not self.steam_path:
+            if not self.prefs['steam path']:
                 cant = "BloonsPlayer cannot find steam on your system"
                 if messagebox.askyesno(cant, cant+"\nWould you like to browse your files for steam?"):
-                    self.steam_path = filedialog.askopenfilename(initialdir="/",
+                    self.prefs['steam path'] = filedialog.askopenfilename(initialdir="/",
                                                                  title="Select steam executable",
                                                                  filetypes=(("EXE (*.exe)", "*.exe"),))
-                self.crash_p.set(bool(self.steam_path))
+                self.crash_p.set(bool(self.prefs['steam path']))
         self.update_prefs()
 
     def update_prefs(self):
         self.prefs['screenshot'] = self.screen_shot.get()
         self.prefs['log times'] = self.log_times.get()
         self.prefs['crash protection'] = self.crash_p.get()
-        self.prefs['steam path'] = self.steam_path
         self.prefs['choices'] = self.choices
         save_dict('preferences', self.prefs)
         self.pos_finder.update_prefs()
@@ -241,8 +253,9 @@ class ChooseOption:
                 new_opts.append(option)
         self.opts_var.set(new_opts)
 
-    def create_filter_menu(self, parent, index, name, opts, det):
+    def create_filter_menu(self, parent, name, opts, det):
         # create a filtering menu from a filter name, options, and determining function
+        index = len(self.filter_bools)
         menu = tkinter.Menu(parent, tearoff=0)
         if name in self.prefs["filters"]:
             bools = [tkinter.BooleanVar(self.root, self.prefs["filters"][name][f]) for f in range(len(opts)+1)]
@@ -308,6 +321,12 @@ class ChooseOption:
             return False
         return difficulty == self.difficulties[open_args[0]]
 
+    def is_map(self, track, option):
+        open_args = parse_args(self.scripts[option][0], "open")
+        if not open_args:
+            return False
+        return track == open_args[0]
+
     def is_game(self, difficulty, option):
         open_args = parse_args(self.scripts[option][0], "open")
         if not open_args:
@@ -318,11 +337,7 @@ class ChooseOption:
         open_args = parse_args(self.scripts[option][0], "open")
         if not open_args:
             return False
-        if mode == open_args[2]:
-            return True
-        if mode == "other" and open_args[2] not in ["standard", "sandbox"]:
-            return True
-        return False
+        return mode == open_args[2]
 
     def quit(self):
         self.toggle_pos = False
@@ -330,6 +345,19 @@ class ChooseOption:
 
     def go(self):
         self.run = True
+        if self.prefs['crash protection']:
+            self.launch()
+        self.quit()
+
+    def launch(self):
+        if self.prefs['steam path']:
+            self.pos_finder.launch_bloons()
+
+    def egg_mode(self):
+        self.run = True
+        if self.prefs['crash protection']:
+            self.launch()
+        self.pos_finder.egg_mode = True
         self.quit()
 
     def get_choice(self):

@@ -32,7 +32,8 @@ def bring_to_front(window_name):
         if window_name == buff_text.value:
             user32.ShowWindow(hwnd, 5)
             user32.SetForegroundWindow(hwnd)
-            break
+            return True
+    return False
 
 # --- keyboard input ---
 user32 = ctypes.WinDLL('user32', use_last_error=True)
@@ -217,6 +218,7 @@ class RatioFit:
         self.monkey_dict = fetch_dict("monkey hotkeys")
         self.track_difficulties = fetch_dict("map difficulties")
         self.monkey_prices = fetch_dict("monkey prices")
+        self.egg_dict = fetch_dict("egg")
         self.monkey_type = dict()
         self.monkey_place = dict()
         self.hero_name = ''
@@ -246,6 +248,9 @@ class RatioFit:
                 key = str(folder)+' '+str(img_name)
                 path = os.path.join(base_path, folder, image)
                 self.image_dict[key] = self.open_image(path, other)
+        # egg mode
+        self.egg_mode = False
+        self.in_egg = False
 
     def convert_pos(self, rel_pos):
         # return absolute screen position based on relative 0-1 floats
@@ -580,17 +585,45 @@ class RatioFit:
         arrow_count = 0
         if "buttons %s" % self.track_difficulties[track] not in self.image_pos_dict:
             time.sleep(1)
-        while not self.click_fixed("tracks %s" % track):
-            if not self.click_fixed("buttons %s" % self.track_difficulties[track]):
-                click_image(play_button)
-            else:
-                arrow_count += 1
-            if arrow_count > 3*11:
-                # we've scrolled the whole menu 3 times, lower the confidence threshold
-                if self.click_fixed("tracks %s" % track, confidence=0.6):
+        if self.egg_mode:
+            egg_img = self.image_dict["edge cases easter bonus"]
+            while 1:
+                if not self.click_fixed("buttons expert"):
+                    click_image(play_button)
+                time.sleep(2)
+                pos = pyautogui.locateCenterOnScreen(egg_img, confidence=0.85)
+                if pos is None:
+                    continue
+                else:
+                    best_dist = 0
+                    best_track = None
+                    for track in self.egg_dict:
+                        t_pos = pyautogui.locateCenterOnScreen(self.image_dict["tracks %s" % track], confidence=0.85)
+                        if t_pos is not None:
+                            new_dist = (t_pos[0] - pos[0])**2 + (t_pos[1] - pos[1])**2
+                            if best_track is None or new_dist < best_dist:
+                                best_track = track
+                                best_dist = new_dist
+                    if best_track is None:
+                        continue
+                    self.egg_mode = best_track
+                    self.in_egg = True
+                    self.click_fixed("tracks %s" % best_track)
                     time.sleep(1)
                     if is_present(self.image_dict["buttons %s" % difficulty]):
                         break
+        else:
+            while not self.click_fixed("tracks %s" % track):
+                if not self.click_fixed("buttons %s" % self.track_difficulties[track]):
+                    click_image(play_button)
+                else:
+                    arrow_count += 1
+                if arrow_count > 3*11:
+                    # we've scrolled the whole menu 3 times, lower the confidence threshold
+                    if self.click_fixed("tracks %s" % track, confidence=0.6):
+                        time.sleep(1)
+                        if is_present(self.image_dict["buttons %s" % difficulty]):
+                            break
         self.wait_until_click(self.image_dict["buttons %s" % difficulty])
         self.wait_until_click(self.image_dict["buttons %s" % mode])
         if shows_up(self.image_dict["edge cases overwrite"], 0.5):
@@ -639,7 +672,7 @@ class RatioFit:
                 self.command_time = time.time()
                 os.system("TASKKILL /F /IM bloonstd6.exe")
                 time.sleep(10)
-                os.system('"%s" steam://rungameid/960090' % self.preferences["steam path"])
+                self.launch_bloons()
                 self.wait_until_click(self.image_dict["edge cases start"])
                 raise BloonsError("TAS Failed")
         return False
@@ -749,11 +782,15 @@ class RatioFit:
             log('\nUnknown command ' + command)
 
     def play(self, parameters):
+        if self.egg_mode and not self.in_egg:
+            self.run_egg_mode()
+            return None
         # play a map once given a list of commands
         self.monkey_place = dict()  # clear out monkey dicts
         self.monkey_type = dict()
         self.play_start_time = time.time()
-        self.do_command(parameters[0])  # should open the track
+        if not self.in_egg:
+            self.do_command(parameters[0])  # should open the track
         if self.preferences["log times"]:
             # begin logging times if that option was selected
             for f in range(len(self.time_log)):
@@ -777,12 +814,25 @@ class RatioFit:
         log(time.strftime("%m/%d/%Y, %H:%M:%S"))
         self.wait_to_finish()
 
+    def run_egg_mode(self):
+        self.open_track("dark castle", "easy", "standard")
+        egg_path = os.path.join(data_dir(), "tas", self.egg_dict[self.egg_mode])
+        file = open(egg_path)
+        script = tuple(file.read().split('\n'))
+        file.close()
+        self.play(script)
+        self.in_egg = False
+
     def kill_threads(self):
         self.cancel_repeat_keys()
         self.round_logger = False
         # halt until the other threads die
         while threading.active_count() != 1:
             pass
+
+    def launch_bloons(self):
+        if not bring_to_front('BloonsTD6'):
+            os.system('"%s" steam://rungameid/960090' % self.preferences["steam path"])
 
     def wait_and_static_click(self, image, threshold=4):
         # wait for an image to appear, then click when it is not moving

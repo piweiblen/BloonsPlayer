@@ -1,0 +1,12 @@
+{
+'sanctuary': 'sanctuary (easy).txt',
+'ravine': 'ravine (easy).txt',
+'flooded valley': 'flooded valley (easy).txt',
+'infernal': 'infernal (easy).txt',
+'bloody puddles': 'bloody puddles (easy).txt',
+'workshop': 'workshop (easy).txt',
+'quad': 'quad (easy).txt',
+'dark castle': 'dark castle (easy).txt',
+'muddy puddles': 'muddy puddles (easy).txt',
+'ouch': 'ouch (easy).txt'
+}
