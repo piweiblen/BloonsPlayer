@@ -550,6 +550,30 @@ class RatioFit:
         pyautogui.click(*position)  # select monkey
         hit_key('back')
 
+    def select_hero(self, scale, inner=False):
+        skins = []
+        for img in self.image_dict:
+            if img.startswith("heroes ") and self.cur_hero in img:
+                skins.append(self.image_dict[img])
+        scaled_skins = []
+        for img in skins:
+            scaled_skins.append(img.resize((int(img.width * scale), int(img.height * scale))))
+        if not any_present(scaled_skins):
+            if inner:
+                self.wait_until_click(self.image_dict["heroes change"])
+            else:
+                self.wait_until_click(self.image_dict["heroes heroes"])
+            direct = 1
+            while not any(click_image(img) for img in skins):
+                self.move_to(0.5, 0.95)
+                for f in range(20):
+                    pyautogui.scroll(direct)
+                direct *= -1
+                time.sleep(0.3)
+            if shows_up(self.image_dict["heroes select"], 2):
+                self.wait_until_click(self.image_dict["heroes select"])
+            hit_key('escape')
+
     def open_track(self, track, difficulty, mode, hero=None):
         # opens the specified track into the specified difficulty from the home screen
         # WILL overwrite saves
@@ -559,26 +583,7 @@ class RatioFit:
             click_image(self.image_dict["edge cases start"])
         if hero is not None:  # select the correct hero if specified
             self.cur_hero = hero
-            skins = []
-            for img in self.image_dict:
-                if img.startswith("heroes ") and hero in img:
-                    skins.append(self.image_dict[img])
-            scale = 1.13
-            scaled_skins = []
-            for img in skins:
-                scaled_skins.append(img.resize((int(img.width * scale), int(img.height * scale))))
-            if not any_present(scaled_skins):
-                self.wait_until_click(self.image_dict["heroes heroes"])
-                direct = 1
-                while not any(click_image(img) for img in skins):
-                    self.move_to(0.5, 0.95)
-                    for f in range(20):
-                        pyautogui.scroll(direct)
-                    direct *= -1
-                    time.sleep(0.3)
-                if shows_up(self.image_dict["heroes select"], 2):
-                    self.wait_until_click(self.image_dict["heroes select"])
-                hit_key('escape')
+            self.select_hero(1.13)
         else:
             self.cur_hero = None
         self.wait_and_static_click(play_button)
@@ -609,8 +614,19 @@ class RatioFit:
                     self.egg_mode = best_track
                     self.in_egg = True
                     self.click_fixed("tracks %s" % best_track)
+                    log("\nopen " + best_track)
                     time.sleep(1)
                     if is_present(self.image_dict["buttons %s" % difficulty]):
+                        egg_path = os.path.join(data_dir(), "tas", self.egg_dict[best_track])
+                        file = open(egg_path)
+                        self.egg_mode = tuple(file.read().split('\n'))
+                        file.close()
+                        open_args = parse_args(self.egg_mode[0], "open")
+                        if len(open_args) > 3:
+                            self.cur_hero = open_args[3]
+                            self.select_hero(0.78, inner=True)
+                        track, difficulty, mode = open_args[:3]
+                        self.cur_mode = (difficulty, mode)
                         break
         else:
             while not self.click_fixed("tracks %s" % track):
@@ -816,11 +832,7 @@ class RatioFit:
 
     def run_egg_mode(self):
         self.open_track("dark castle", "easy", "standard")
-        egg_path = os.path.join(data_dir(), "tas", self.egg_dict[self.egg_mode])
-        file = open(egg_path)
-        script = tuple(file.read().split('\n'))
-        file.close()
-        self.play(script)
+        self.play(self.egg_mode)
         self.in_egg = False
 
     def kill_threads(self):
