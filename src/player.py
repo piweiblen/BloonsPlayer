@@ -596,14 +596,14 @@ class RatioFit:
                 if not self.click_fixed("buttons expert"):
                     click_image(play_button)
                 time.sleep(2)
-                pos = pyautogui.locateCenterOnScreen(egg_img, confidence=0.85)
+                pos = pyautogui.locateCenterOnScreen(egg_img, confidence=0.8)
                 if pos is None:
                     continue
                 else:
                     best_dist = 0
                     best_track = None
                     for track in self.egg_dict:
-                        t_pos = pyautogui.locateCenterOnScreen(self.image_dict["tracks %s" % track], confidence=0.85)
+                        t_pos = pyautogui.locateCenterOnScreen(self.image_dict["tracks %s" % track], confidence=0.8)
                         if t_pos is not None and t_pos[0] < pos[0]:
                             new_dist = (t_pos[0] - pos[0])**2 + (t_pos[1] - pos[1])**2
                             if best_track is None or new_dist < best_dist:
@@ -745,6 +745,7 @@ class RatioFit:
         time.sleep(self.delay)
         # special event edge case
         if is_present(reward):
+            log('\ncollect rewards')
             instas = self.image_dict["edge cases insta monkey"]
             insta_g = self.image_dict["edge cases insta monkey green"]
             insta_b = self.image_dict["edge cases insta monkey blue"]
@@ -831,9 +832,13 @@ class RatioFit:
         self.wait_to_finish()
 
     def run_egg_mode(self):
-        self.open_track("dark castle", "easy", "standard")
-        self.play(self.egg_mode)
-        self.in_egg = False
+        try:
+            self.open_track("dark castle", "easy", "standard")
+            self.play(self.egg_mode)
+        except BloonsError:
+            raise
+        finally:
+            self.in_egg = False
 
     def kill_threads(self):
         self.cancel_repeat_keys()

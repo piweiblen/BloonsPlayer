@@ -370,7 +370,7 @@ class ChooseOption:
         previous = ""
         current = ""
         counter = 0
-        while self.toggle_pos and 'normal' == self.root.state():
+        while self.toggle_pos:
             time.sleep(0.03)
             position = self.pos_finder.revert_pos(pyautogui.position())
             previous = current
@@ -385,6 +385,7 @@ class ChooseOption:
                 self.root.clipboard_clear()
                 self.root.clipboard_append(current)
         self.print_button['text'] = "Display mouse position"
+        self.toggle_pos = False
 
     def position_info(self):
         self.toggle_pos = not self.toggle_pos
