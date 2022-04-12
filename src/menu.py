@@ -81,6 +81,7 @@ class ChooseOption:
         # file menu
         file_menu = tkinter.Menu(self.menu_bar, tearoff=0)
         file_menu.add_command(label="Refresh Scripts", command=self.get_options)
+        file_menu.add_command(label="Open Data Directory", command=self.open_directory)
         file_menu.add_command(label="Exit", command=self.quit)
         # filter menu
         filter_menu = tkinter.Menu(self.menu_bar, tearoff=0)
@@ -173,6 +174,9 @@ class ChooseOption:
             self.scripts[tas[:-4]] = tuple(file.read().split('\n'))
             file.close()
         self.perform_filtering()
+
+    def open_directory(self):
+        os.system("start " + data_dir())
 
     def steam_prompt(self):
         cant = "BloonsPlayer cannot find steam on your system"

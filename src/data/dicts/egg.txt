@@ -6,7 +6,7 @@
 'bloody puddles': 'bloody puddles (easy).txt',
 'workshop': 'workshop (easy).txt',
 'quad': 'quad (easy).txt',
-'dark castle': 'dark castle (easy).txt',
+'dark castle': 'dark castle CHIMPS (obyn).txt',
 'muddy puddles': 'muddy puddles (easy).txt',
 'ouch': 'ouch (easy).txt'
 }

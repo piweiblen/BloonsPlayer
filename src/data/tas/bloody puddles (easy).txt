@@ -7,8 +7,8 @@ upgrade sub, 1
 upgrade dom, 1, 1
 place druid, (0.63434, 0.39792), d1
 upgrade d1, 2, 2, 2
-place boat, (0.15416, 0.41944), bing
-place boat, (0.64317, 0.81250), bong
+place boat, (0.11418, 0.43056), bing
+place boat, (0.60970, 0.87639), bong
 upgrade bing, 3, 3
 upgrade bong, 3, 3
 upgrade sub, 2

@@ -581,6 +581,7 @@ class RatioFit:
         play_button = self.image_dict["buttons play"]
         while not is_present(play_button):
             click_image(self.image_dict["edge cases start"])
+            self.collect_reward()
         if hero is not None:  # select the correct hero if specified
             self.cur_hero = hero
             self.select_hero(1.13)
@@ -603,7 +604,7 @@ class RatioFit:
                     best_dist = 0
                     best_track = None
                     for track in self.egg_dict:
-                        t_pos = pyautogui.locateCenterOnScreen(self.image_dict["tracks %s" % track], confidence=0.8)
+                        t_pos = pyautogui.locateCenterOnScreen(self.image_dict["tracks %s" % track], confidence=0.6)
                         if t_pos is not None and t_pos[0] < pos[0]:
                             new_dist = (t_pos[0] - pos[0])**2 + (t_pos[1] - pos[1])**2
                             if best_track is None or new_dist < best_dist:
@@ -613,7 +614,7 @@ class RatioFit:
                         continue
                     self.egg_mode = best_track
                     self.in_egg = True
-                    self.click_fixed("tracks %s" % best_track)
+                    self.click_fixed("tracks %s" % best_track, confidence=0.6)
                     log("\nopen " + best_track)
                     time.sleep(1)
                     if is_present(self.image_dict["buttons %s" % difficulty]):
@@ -728,22 +729,8 @@ class RatioFit:
                 break
             self.check_edge_cases()
 
-    def wait_to_finish(self):
-        # waits for the round to finish, then goes to the home screen
-        next_but = self.image_dict["buttons NEXT"]
-        while not is_present(next_but):
-            click_image(self.image_dict["buttons insta-monkey"])  # for chimps/impoppable
-            self.check_edge_cases()
-        time.sleep(self.delay)
-        self.wait_until_click(next_but)
-        self.cancel_repeat_keys()
-        time.sleep(self.delay)
-        home = self.image_dict["buttons home"]
+    def collect_reward(self):
         reward = self.image_dict["edge cases collect"]
-        play_button = self.image_dict["buttons play"]
-        self.static_click_and_confirm(home, [reward, play_button])
-        time.sleep(self.delay)
-        # special event edge case
         if is_present(reward):
             log('\ncollect rewards')
             instas = self.image_dict["edge cases insta monkey"]
@@ -764,6 +751,24 @@ class RatioFit:
             if click_image(cont):
                 time.sleep(1)
             hit_key('escape')
+
+    def wait_to_finish(self):
+        # waits for the round to finish, then goes to the home screen
+        next_but = self.image_dict["buttons NEXT"]
+        while not is_present(next_but):
+            click_image(self.image_dict["buttons insta-monkey"])  # for chimps/impoppable
+            self.check_edge_cases()
+        time.sleep(self.delay)
+        self.wait_until_click(next_but)
+        self.cancel_repeat_keys()
+        time.sleep(self.delay)
+        home = self.image_dict["buttons home"]
+        reward = self.image_dict["edge cases collect"]
+        play_button = self.image_dict["buttons play"]
+        self.static_click_and_confirm(home, [reward, play_button])
+        time.sleep(self.delay)
+        # special event edge case
+        self.collect_reward()
 
     def do_command(self, command):
         # interpret and execute a command
