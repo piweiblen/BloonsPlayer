@@ -573,6 +573,7 @@ class RatioFit:
         # opens the specified track into the specified difficulty from the home screen
         # WILL overwrite saves
         self.cur_mode = (difficulty, mode)
+
         play_button = self.image_dict["buttons play"]
         while not is_present(play_button):
             click_image(self.image_dict["edge cases start"])
@@ -591,6 +592,7 @@ class RatioFit:
             while 1:
                 if not self.click_fixed("buttons expert"):
                     click_image(play_button)
+
                 time.sleep(2)
                 pos = pyautogui.locateCenterOnScreen(egg_img, confidence=0.8)
                 if pos is None:
@@ -798,6 +800,10 @@ class RatioFit:
         else:
             log('\nUnknown command ' + command)
 
+    def start_round(self):
+        log('\nStart (hit space twice)')
+        hit_keys('  ', self.delay)
+
     def play(self, parameters):
         if self.egg_mode and not self.in_egg:
             self.run_egg_mode()
@@ -816,15 +822,21 @@ class RatioFit:
             self.round_logger = True
             newt = threading.Thread(target=self.log_round_times, daemon=True)
             newt.start()
-        self.do_command(parameters[1])  # should place the first tower
-        log('\nStart (hit space twice)')
-        if "deflation" in parameters[0]:  # deflation needs more than one command before starting
-            pass
-        elif "apopalypse" in parameters[0]:  # apopalypse runs on its own
-            hit_keys(' ', self.delay)
+        start = 2
+        if any("start round" in p for p in parameters):
+            for i, param in enumerate(parameters[1:]):
+                if "start round" in param:
+                    start += i
+                    break
+                self.do_command(param)
         else:
-            hit_keys('  ', self.delay)
-        for command in parameters[2:]:
+            self.do_command(parameters[1])  # should place the first tower
+
+        # start round if not in apopalypse
+        if "apopalypse" not in parameters[0]:
+            self.start_round()
+
+        for command in parameters[start:]:
             self.do_command(command)
             time.sleep(self.delay)
         log('\n' + 'Waiting for track to finish, ')
