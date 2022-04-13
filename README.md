@@ -53,6 +53,7 @@ See also the tas directory for more examples.
 * [click](#click)
 * [move](#move)
 * [change speed](#changing-speed)
+* [start round](#start-round)
 
 ### First command, opening the track
 The first command should be the "open" command and should follow the following format.
@@ -288,6 +289,12 @@ move (0.13, 0.37)  # move to (0.13, 0.37)
 
 ### Changing speed
 The "change speed" command changes the gameplay speed by hitting space.
+```
+change speed
+```
+
+### Start round
+The "start round" allows you to do multiple actions before hitting space twice to start the round.
 ```
 change speed
 ```
