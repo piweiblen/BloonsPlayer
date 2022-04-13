@@ -575,6 +575,9 @@ class RatioFit:
         # opens the specified track into the specified difficulty from the home screen
         # WILL overwrite saves
         self.cur_mode = (difficulty, mode)
+        if track == "none":
+            # this is for testing and allows to play the sequence without selecting the map or hero, it just sets everything for the normal workflow to work
+            self.cur_hero
 
         play_button = self.image_dict["buttons play"]
         while not is_present(play_button):
