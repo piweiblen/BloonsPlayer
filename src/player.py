@@ -418,8 +418,8 @@ class RatioFit:
                 match_arr = numpy.array(num_img)
                 guesses.append(abs(sections[i] - match_arr).sum() / match_arr.size)
             num = min(range(10), key=lambda x: guesses[x])
-            if guesses[num] < 65:
-                if hors[i] - last_pos > 35 and cur_num:
+            if guesses[num] < 42:
+                if hors[i] - last_pos > 43 and cur_num:
                     nums.append(int(cur_num))
                     cur_num = ""
                 cur_num += str(num)
@@ -563,12 +563,7 @@ class RatioFit:
                 self.wait_until_click(self.image_dict["heroes change"])
             else:
                 self.wait_until_click(self.image_dict["heroes heroes"])
-            direct = 1
             while not any(click_image(img) for img in skins):
-                self.move_to(0.5, 0.95)
-                for f in range(20):
-                    pyautogui.scroll(direct)
-                direct *= -1
                 time.sleep(0.3)
             if shows_up(self.image_dict["heroes select"], 2):
                 self.wait_until_click(self.image_dict["heroes select"])
@@ -584,7 +579,7 @@ class RatioFit:
             self.collect_reward()
         if hero is not None:  # select the correct hero if specified
             self.cur_hero = hero
-            self.select_hero(1.13)
+            self.select_hero(0.9)
         else:
             self.cur_hero = None
         self.wait_and_static_click(play_button)
@@ -625,7 +620,7 @@ class RatioFit:
                         open_args = parse_args(self.egg_mode[0], "open")
                         if len(open_args) > 3:
                             self.cur_hero = open_args[3]
-                            self.select_hero(0.78, inner=True)
+                            self.select_hero(0.52, inner=True)
                         track, difficulty, mode = open_args[:3]
                         self.cur_mode = (difficulty, mode)
                         break
@@ -684,7 +679,7 @@ class RatioFit:
             raise BloonsError("TAS Failed")
         # then check for the game having crashed (1 hour since last command)
         if self.preferences["crash protection"] and self.preferences["steam path"]:
-            if time.time() - self.command_time > 3600:
+            if time.time() - self.command_time > 3600 or not bring_to_front('BloonsTD6'):
                 log("\nGame crashed")
                 self.command_time = time.time()
                 os.system("TASKKILL /F /IM bloonstd6.exe")

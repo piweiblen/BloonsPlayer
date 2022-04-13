@@ -27,6 +27,7 @@
 "captain churchill": 2000,
 "etienne": 850,
 "ezili": 600,
+"geraldo": 600,
 "gwendolin": 900,
 "obyn greenfoot": 650,
 "pat fusty": 800,
