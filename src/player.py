@@ -320,6 +320,8 @@ class RatioFit:
                 pyautogui.click(*known_pos)
                 return True
             else:
+                # bugfix: when the taken screenshot has the cursor in it, the target image is likely not recognised
+                pyautogui.moveTo((10, 10))
                 return False
         else:
             location = pyautogui.locateCenterOnScreen(image, confidence=confidence)
