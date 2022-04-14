@@ -1,6 +1,7 @@
 open dark castle, hard, chimps, obyn
 place dart, (0.348, 0.57), dart1, no delay
 place sub, (0.661, 0.64), sub, no delay
+start round
 place dart, (0.307, 0.57), dart2
 target dart1, 3
 target dart2, 3
@@ -42,10 +43,17 @@ upgrade druid6, 3
 upgrade alch1, 1, 3, 3 # get alch buffs
 upgrade alch2, 1, 3, 3
 upgrade alch1, 1
-upgrade alch2, 1
-upgrade druid1, 3 # avatar of wrath
+money 1000 # clear trees
+remove (0.1, 0.1)
+money 1000
+remove (0.1, 0.4)
+money 1000
+remove (0.1, 0.6)
+money 1000
+remove (0.1, 0.9)
+upgrade druid1, 2, 3 # avatar of wrath
 upgrade mib, 2 # MIB
 upgrade perma, 3 # deadly spikes
-place alchemist, (0.955, 0.42)), last
+place alchemist, (0.95, 0.42), last
 upgrade last, 1, 1
 upgrade perma, 3 # perma spike

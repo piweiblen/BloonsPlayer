@@ -35,6 +35,21 @@ def bring_to_front(window_name):
             return True
     return False
 
+def window_is_open(window_name):
+    hwnds = []
+    def windowEnumerationHandler(hwnd, lparam):
+        hwnds.append(hwnd)
+        return True
+    func = WNDENUMPROC(windowEnumerationHandler)
+    _enum_windows(func, 0)
+    for hwnd in hwnds:
+        length = user32.GetWindowTextLengthW(hwnd)
+        buff_text = ctypes.create_unicode_buffer(length + 1)
+        user32.GetWindowTextW(hwnd, buff_text, length + 1)
+        if window_name == buff_text.value:
+            return True
+    return False
+
 # --- keyboard input ---
 user32 = ctypes.WinDLL('user32', use_last_error=True)
 INPUT_MOUSE    = 0
@@ -142,17 +157,28 @@ def data_dir():
         app_version = file.read()
         file.close()
         if exe_version != app_version:
+            old_prefs = fetch_dict(os.path.join(app_path, "dicts\\preferences.txt"), abs_path=True)
+            shipped_prefs = fetch_dict(os.path.join(exe_path, "dicts\\preferences.txt"), abs_path=True)
             if os.path.exists(app_path):
                 shutil.rmtree(app_path)
             shutil.copytree(exe_path, app_path)
+            for p in shipped_prefs:
+                if p in ["filters"]:
+                    pass  # do not save this preference
+                if p in old_prefs:
+                    shipped_prefs[p] = old_prefs[p]
+            save_dict("preferences", shipped_prefs)
     except AttributeError:
         # _MEIPASS does not exist when running python code
         app_path = os.path.join(os.path.abspath("."), "data")
     return app_path
 
 
-def fetch_dict(name):
-    file = open(os.path.join(data_dir(), "dicts", name+".txt"))
+def fetch_dict(name, abs_path=False):
+    if abs_path:
+        file = open(name)
+    else:
+        file = open(os.path.join(data_dir(), "dicts", name+".txt"))
     ret_val = eval(file.read())
     file.close()
     return ret_val
@@ -180,6 +206,10 @@ def hit_key(key, delay=0.001):
 
 
 # --- player ---
+class MenuBackError(Exception):
+    pass
+
+
 class BloonsError(Exception):
     pass
 
@@ -188,6 +218,7 @@ class RatioFit:
 
     def __init__(self):
         self.delay = 0.3
+        self.menu_halt = False
         # calculate the position of the playing field
         ratio = 19/11
         x, y = pyautogui.size()
@@ -405,7 +436,7 @@ class RatioFit:
             xs, ys = numpy.where(new_arr != 0)
             if xs.size > 0 and ys.size > 0:
                 new_arr = new_arr[min(xs):max(xs)+1, min(ys):max(ys)+1]
-                if new_arr.size > 300 and new_arr.shape[0] > 20:
+                if new_arr.size > (h**2)/8 and new_arr.shape[0] > h/2:
                     spot = pos_insert(hors, min(ys))
                     sections.insert(spot, new_arr)
         nums = []
@@ -413,16 +444,17 @@ class RatioFit:
         cur_num = ""
         for i in range(len(sections)):
             guesses = []
-            for f in range(10):
+            for f in range(11):
                 num_img = self.image_dict['numbers %s' % f].resize(sections[i].shape[::-1]).convert('L')
                 match_arr = numpy.array(num_img)
                 guesses.append(abs(sections[i] - match_arr).sum() / match_arr.size)
-            num = min(range(10), key=lambda x: guesses[x])
-            if guesses[num] < 42:
-                if hors[i] - last_pos > 43 and cur_num:
+            num = min(range(11), key=lambda x: guesses[x])
+            if guesses[num] < 50:
+                if (hors[i] - last_pos > 75 or num > 9) and cur_num:
                     nums.append(int(cur_num))
                     cur_num = ""
-                cur_num += str(num)
+                if num < 10:
+                    cur_num += str(num)
                 last_pos = hors[i]
         if cur_num:
             nums.append(int(cur_num))
@@ -657,7 +689,11 @@ class RatioFit:
 
     def check_edge_cases(self, time_only=False):
         # function checks for and handles various edge cases
-        # first check if we've leveled up
+        # check if menu says we should stop
+        if self.menu_halt:
+            self.menu_halt = False
+            raise MenuBackError("Go back to the menu")
+        # check if we've leveled up
         if not time_only and click_image(self.image_dict["edge cases LEVEL UP"]):
             log("\nLevel up")
             if shows_up(self.image_dict["edge cases monkey knowledge"], 10):
@@ -672,14 +708,14 @@ class RatioFit:
                 time.sleep(1)
                 cur_time = time.strftime("%Y-%m-%d-%H-%M-%S")
                 log("\nScreenshot taken "+cur_time)
-                pyautogui.screenshot(os.path.join(data_dir(), "log", cur_time+".png"))
+                pyautogui.screenshot(os.path.join(data_dir(), "log", "screenshot "+cur_time+".png"))
                 hit_key("escape")
             self.cancel_repeat_keys()
             self.wait_until_click(self.image_dict["buttons home"])
             raise BloonsError("TAS Failed")
         # then check for the game having crashed (1 hour since last command)
         if self.preferences["crash protection"] and self.preferences["steam path"]:
-            if time.time() - self.command_time > 3600 or not bring_to_front('BloonsTD6'):
+            if time.time() - self.command_time > 3600 or not window_is_open('BloonsTD6'):
                 log("\nGame crashed")
                 self.command_time = time.time()
                 os.system("TASKKILL /F /IM bloonstd6.exe")
@@ -791,7 +827,8 @@ class RatioFit:
                 "priority": self.toggle_priority,
                 "sell": self.sell_tower,
                 "remove": self.remove_obstacle,
-                "change speed": lambda *x: hit_key(' ')}
+                "change speed": lambda *x: hit_key(' '),
+                "start round": lambda *x: hit_keys('  ', self.delay)}
         for prefix in opts:
             if parse(command, prefix, opts[prefix]):
                 break
@@ -817,13 +854,13 @@ class RatioFit:
             newt = threading.Thread(target=self.log_round_times, daemon=True)
             newt.start()
         self.do_command(parameters[1])  # should place the first tower
-        log('\nStart (hit space twice)')
-        if "deflation" in parameters[0]:  # deflation needs more than one command before starting
-            pass
-        elif "apopalypse" in parameters[0]:  # apopalypse runs on its own
-            hit_keys(' ', self.delay)
-        else:
-            hit_keys('  ', self.delay)
+        if not (any("start round" in p for p in parameters) or "deflation" in parameters[0]):
+            # if no start round command, start on our own
+            log('\nStart (hit space twice)')
+            if "apopalypse" in parameters[0]:  # apopalypse runs on its own
+                hit_keys(' ', self.delay)
+            else:
+                hit_keys('  ', self.delay)
         for command in parameters[2:]:
             self.do_command(command)
             time.sleep(self.delay)
@@ -844,8 +881,7 @@ class RatioFit:
         self.cancel_repeat_keys()
         self.round_logger = False
         # halt until the other threads die
-        while threading.active_count() != 1:
-            pass
+        time.sleep(2)
 
     def launch_bloons(self):
         if not bring_to_front('BloonsTD6'):
@@ -935,13 +971,12 @@ def is_loading():
 
 def log_file():
     # get path to log file
-    return os.path.join(data_dir(), "log\\log.txt")
-
-
-def clear_log():
-    # empty the log file
-    file = open(log_file(), 'w')
-    file.close()
+    path = os.path.join(data_dir(), "log")
+    last_log = ""
+    for file in sorted(os.listdir(path)):
+        if file.startswith("log"):
+            last_log = file
+    return os.path.join(path, last_log)
 
 
 def log(txt):

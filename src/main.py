@@ -3,37 +3,29 @@ from menu import *
 
 
 def main():
-    clear_log()
     # to get out, move mouse to the corner of the screen to trigger the failsafe
     screen = RatioFit()
-    # print log file path
-    print('Log file located at:')
-    print(log_file())
+    # manage log files
+    path = os.path.join(data_dir(), "log")
+    new_file = os.path.join(path, "log " + time.strftime("%Y-%m-%d-%H-%M-%S") + ".txt")
+    if not os.path.exists(new_file):
+        open(new_file, "w").close()
+    for file in sorted(os.listdir(path)):
+        space_dot = (file.rfind(" "), file.rfind("."))
+        if space_dot[0] != -1 and space_dot[1] != -1:
+            try:
+                file_time = time.mktime(time.strptime(file[space_dot[0]+1: space_dot[1]], "%Y-%m-%d-%H-%M-%S"))
+            except ValueError:
+                continue
+            if time.time() - file_time > 5*24*60*60:  # five days
+                os.remove(os.path.join(path, file))
     # get version
     file = open(os.path.join(data_dir(), "version.txt"))
     version = file.read()
     file.close()
-    # get track choice
+    # open menu
     chooser = ChooseOption('BloonsPlayer v' + version, screen)
     chooser.show()
-    choices = chooser.get_choice()
-    if screen.egg_mode and not choices:
-        choices.append(None)
-    if not choices or not chooser.run:
-        print("No selection made")
-        return None
-    # start main loop
-    mainloop = True
-    while mainloop:
-        for choice in choices:
-            try:
-                screen.play(choice)
-            except Exception as e:
-                log('\n' + repr(e))
-                if type(e) != BloonsError:
-                    raise
-            finally:
-                screen.kill_threads()
 
 
 if __name__ == "__main__":

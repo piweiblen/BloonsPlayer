@@ -22,16 +22,14 @@ class ChooseOption:
         if not self.prefs['steam path']:
             self.prefs['steam path'] = steam_path()
         self.filters = dict()
-        self.run = False
+        self.mainloop = False
         # create root
         self.root = tkinter.Tk()
         self.root.title(title)
+        self.root.iconbitmap(resource_path("images\\miscellaneous\\techbot.ico"))
         self.root.geometry("700x500")
         # set up frame
         self.frame = tkinter.Frame(self.root)
-        self.root.rowconfigure(0, weight=1)
-        self.root.columnconfigure(0, weight=1)
-        self.frame.grid(row=0, column=0, sticky="news")
         self.frame.columnconfigure(tuple(range(3)), weight=1)
         self.frame.rowconfigure(tuple(range(11)), weight=1)
 
@@ -58,6 +56,7 @@ class ChooseOption:
         self.up_button.grid(row=5, column=1)
         self.down_button = tkinter.Button(self.frame, text="⏷", command=self.move_down, **kwargs)
         self.down_button.grid(row=6, column=1)
+
         # go button
         self.go_button = tkinter.Button(self.frame, text="GO", command=self.go, padx=5, pady=5)
         self.go_button.grid(row=9, column=2, padx=5, pady=5)
@@ -82,6 +81,7 @@ class ChooseOption:
         file_menu = tkinter.Menu(self.menu_bar, tearoff=0)
         file_menu.add_command(label="Refresh Scripts", command=self.get_options)
         file_menu.add_command(label="Open Data Directory", command=self.open_directory)
+        file_menu.add_command(label="Reset Steam File Path", command=self.reset_steam)
         file_menu.add_command(label="Exit", command=self.quit)
         # filter menu
         filter_menu = tkinter.Menu(self.menu_bar, tearoff=0)
@@ -109,15 +109,39 @@ class ChooseOption:
                        "dark": ("#404040", "#202020", "#ffffff", "#497ba1"),
                        "amoled": ("#000000", "#101010", "#f0f0f0", "#c02020")}
         self.create_single_select_menu(style_menu, self.styles.keys(), self.set_style, self.prefs['theme'])
-        self.set_style(self.prefs['theme'])
         # build menu bar structure
         self.menu_bar.add_cascade(label="File", menu=file_menu)
         self.menu_bar.add_cascade(label="Filter", menu=filter_menu)
         self.menu_bar.add_cascade(label="Options", menu=option_menu)
         self.menu_bar.add_cascade(label="Themes", menu=style_menu)
         self.root.config(menu=self.menu_bar)
+
+        # bot running menu
+        self.run_frame = tkinter.Frame(self.root)
+        self.run_frame.columnconfigure(tuple(range(1)), weight=1)
+        self.run_frame.rowconfigure(tuple(range(2)), weight=1)
+        # back to menu button
+        self.back_button = tkinter.Button(self.run_frame, text="Back to bot Menu",
+                                          command=self.back_to_menu, padx=5, pady=5)
+        self.back_button.grid(row=0, column=0, padx=5, pady=5)
+        # exit button
+        self.exit_button = tkinter.Button(self.run_frame, text="Exit",
+                                          command=self.quit, padx=5, pady=5)
+        self.exit_button.grid(row=1, column=0, padx=5, pady=5)
+
+        # suffix
+        self.set_frame(0)
+        self.set_style(self.prefs['theme'])
         self.get_options()
         self.update_prefs()
+
+    def set_frame(self, ind):
+        self.frame.pack_forget()
+        self.run_frame.pack_forget()
+        if ind == 0:
+            self.frame.pack(fill=tkinter.BOTH, expand=1)
+        elif ind == 1:
+            self.run_frame.pack(fill=tkinter.BOTH, expand=1)
 
     def set_style(self, name):
         back, more_back, front, accent = self.styles[name]
@@ -129,6 +153,7 @@ class ChooseOption:
         menu_style = {"bd": 0, "bg": back, "fg": front, "activebackground": accent,
                       "activeforeground": more_back, "selectcolor": front}
         self.frame.config(bg=back)
+        self.run_frame.config(bg=back)
         self.right_label.config(**standard)
         self.left_label.config(**standard)
         self.right_button.config(**button)
@@ -139,6 +164,8 @@ class ChooseOption:
         self.go_button.config(**button)
         self.launch_button.config(**button)
         self.easter_button.config(**button)
+        self.back_button.config(**button)
+        self.exit_button.config(**button)
         self.choice_listbox.config(**box)
         self.option_listbox.config(**box)
 
@@ -185,6 +212,10 @@ class ChooseOption:
                                                          title="Select steam executable",
                                                          filetypes=(("EXE (*.exe)", "*.exe"),))
         self.update_prefs()
+
+    def reset_steam(self):
+        self.prefs['steam path'] = steam_path()
+        self.steam_prompt()
 
     def crash_p_toggle(self):
         if self.crash_p.get():
@@ -349,13 +380,44 @@ class ChooseOption:
 
     def quit(self):
         self.toggle_pos = False
+        self.mainloop = False
+        self.pos_finder.menu_halt = True
         self.root.destroy()
 
+    def back_to_menu(self):
+        self.mainloop = False
+        self.pos_finder.menu_halt = True
+        self.set_frame(0)
+
     def go(self):
-        self.run = True
+        self.mainloop = True
+        self.pos_finder.menu_halt = False
         if self.prefs['crash protection']:
             self.launch()
-        self.quit()
+        self.set_frame(1)
+        newt = threading.Thread(target=self.run_bot, daemon=True)
+        newt.start()
+
+    def run_bot(self):
+        choices = self.get_choices()
+        if self.pos_finder.egg_mode and not choices:
+            choices.append(None)
+        if not choices:
+            return None
+        while self.mainloop:
+            for choice in choices:
+                try:
+                    self.pos_finder.play(choice)
+                except Exception as e:
+                    if type(e) == MenuBackError:
+                        print("yo")
+                        break
+                    else:
+                        log('\n' + repr(e))
+                        if type(e) != BloonsError:
+                            raise
+                finally:
+                    self.pos_finder.kill_threads()
 
     def launch(self):
         if self.prefs['steam path']:
@@ -367,7 +429,7 @@ class ChooseOption:
         self.pos_finder.egg_mode = True
         self.go()
 
-    def get_choice(self):
+    def get_choices(self):
         return [self.scripts[c] for c in self.choices]
 
     def display_pos(self):
