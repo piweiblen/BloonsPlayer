@@ -18,9 +18,8 @@ For users who want nothing to do with programming, a precompiled executable can 
 
 It should be noted that while the script is running your computer will not really be usable, 
 as the script needs to occasionally input keystrokes and take control of your mouse. 
-Besides directly killing the program by exiting the terminal window 
-or killing execution in your IDE, 
-you can move your cursor to any corner of your monitor which will eventually trigger PyAutoGui's built in fail safe.
+Besides directly killing the program by exiting or killing execution in your IDE, 
+you can move your cursor to any corner of your monitor which will eventually trigger PyAutoGui's built in fail-safe.
 
 # Scripting
 The scripts for BloonsPlayer are stored in the `data\tas\\` directory.
@@ -35,9 +34,10 @@ The arguments of each command should be separated by commas, parentheses and spa
 Commands are not case-sensitive.
 The first command must be top open the track with arguments of track name, difficulty, and mode respectively. 
 The second command and onward do not have special requirements, 
-but it should be noted that after the second command is executed the tas will start the game 
-(unless game mode is deflation), 
-meaning usually the second command will be to place a tower that can be immediately afforded.
+but it should be noted that unless the "start round" command is specified, 
+the tas will start the game automatically after the second command is executed
+(unless game mode is deflation).
+This means that usually the second command will be to place a tower that can be immediately afforded.
 
 The following is a comprehensive list of the types of commands and how they are used. 
 See also the tas directory for more examples.
@@ -294,8 +294,8 @@ change speed
 ```
 
 ### Start round
-The "start round" command allows you to do multiple actions before hitting the round starts.
-If not used, the program will handle starting on its own. This command must be used in 
+The "start round" command allows you to have multiple commands occur before the bot starts the round.
+If not used, the program will handle starting on its own.
 ```
 start round
 ```
