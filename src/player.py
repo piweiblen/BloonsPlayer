@@ -590,7 +590,7 @@ class RatioFit:
         scaled_skins = []
         for img in skins:
             scaled_skins.append(img.resize((int(img.width * scale), int(img.height * scale))))
-        if not any_present(scaled_skins):
+        if not any_present(scaled_skins, confidence=0.65):
             if inner:
                 self.wait_until_click(self.image_dict["heroes change"])
             else:
@@ -611,7 +611,7 @@ class RatioFit:
             self.collect_reward()
         if hero is not None:  # select the correct hero if specified
             self.cur_hero = hero
-            self.select_hero(0.9)
+            self.select_hero(0.8)
         else:
             self.cur_hero = None
         self.wait_and_static_click(play_button)
@@ -922,16 +922,16 @@ class RatioFit:
             pyautogui.click(*spot)
 
 
-def is_present(image):
+def is_present(image, confidence=0.85):
     # function which determines if a certain image is present
-    spot = pyautogui.locateOnScreen(image, confidence=0.85)
+    spot = pyautogui.locateOnScreen(image, confidence=confidence)
     return spot is not None
 
 
-def any_present(images):
+def any_present(images, confidence=0.85):
     # function which determines if any image from a given list is present
     for image in images:
-        if is_present(image):
+        if is_present(image, confidence=confidence):
             return True
     return False
 

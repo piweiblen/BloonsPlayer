@@ -410,7 +410,6 @@ class ChooseOption:
                     self.pos_finder.play(choice)
                 except Exception as e:
                     if type(e) == MenuBackError:
-                        print("yo")
                         break
                     else:
                         log('\n' + repr(e))
