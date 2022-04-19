@@ -7,18 +7,23 @@ def main():
     screen = RatioFit()
     # manage log files
     path = os.path.join(data_dir(), "log")
-    new_file = os.path.join(path, "log " + time.strftime("%Y-%m-%d-%H-%M-%S") + ".txt")
-    if not os.path.exists(new_file):
-        open(new_file, "w").close()
     for file in sorted(os.listdir(path)):
+        try:
+            file_s = open(os.path.join(path, file))
+            content = file_s.read()
+            file_s.close()
+        except UnicodeError:
+            content = True
         space_dot = (file.rfind(" "), file.rfind("."))
         if space_dot[0] != -1 and space_dot[1] != -1:
             try:
                 file_time = time.mktime(time.strptime(file[space_dot[0]+1: space_dot[1]], "%Y-%m-%d-%H-%M-%S"))
             except ValueError:
                 continue
-            if time.time() - file_time > 5*24*60*60:  # five days
+            if time.time() - file_time > 5*24*60*60 or not content:
+                # delete after five days or if ile empty
                 os.remove(os.path.join(path, file))
+    create_log_file()
     # get version
     file = open(os.path.join(data_dir(), "version.txt"))
     version = file.read()

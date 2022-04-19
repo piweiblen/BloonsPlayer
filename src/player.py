@@ -969,6 +969,14 @@ def is_loading():
     return bool(black/pixel_count > 0.5)
 
 
+def create_log_file():
+    path = os.path.join(data_dir(), "log")
+    new_file = os.path.join(path, "log " + time.strftime("%Y-%m-%d-%H-%M-%S") + ".txt")
+    if not os.path.exists(new_file):  # create new log file
+        open(new_file, "w").close()
+    return new_file
+
+
 def log_file():
     # get path to log file
     path = os.path.join(data_dir(), "log")
@@ -976,6 +984,8 @@ def log_file():
     for file in sorted(os.listdir(path)):
         if file.startswith("log"):
             last_log = file
+    if not last_log:
+        return create_log_file()
     return os.path.join(path, last_log)
 
 
