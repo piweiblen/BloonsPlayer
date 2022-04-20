@@ -12,17 +12,17 @@ upgrade ninja1, 1
 place druid, (0.46, 0.457), d1
 target d1, 3
 upgrade d1, 1, 2, 2, 2
-place spikes, (0.976, 0.597), spike
+place spikes, (0.973, 0.597), spike
 upgrade spike, 3, 3
 target spike, 1
 upgrade spike, 3, 3, 2, 2
-place village, (0.8556, 0.642), disc
+place village, (0.8556, 0.644), disc
 upgrade disc, 3, 3
-place alchemist, (0.924, 0.577), alc1
+place alchemist, (0.924, 0.58), alc1
 upgrade alc1, 1, 1, 1
-place spikes, (0.95833, 0.6625), spike2
+place spikes, (0.94625, 0.65946), spike2
 upgrade spike2, 1, 1, 1, 2, 2
-place alchemist, (0.91696, 0.63194), alc2
+place alchemist, (0.85519, 0.72703), alc2
 upgrade alc2, 1, 1, 1
 upgrade disc, 1, 1
 place sniper, (0.73567, 0.70625), snipe1
@@ -33,16 +33,11 @@ upgrade bomb1, 3, 3, 3, 1, 1, 3
 place alchemist, (0.61621, 0.32167), alc3
 upgrade alc3, 1, 1, 1, 2, 2, 1
 place village, (0.73149, 0.388889), camo
-upgrade camo, 1, 1
-round 63
-remove (0.5, 0.218)
-upgrade camo, 1, 2
+upgrade camo, 1, 1, 1, 2
 place alchemist, (0.77426, 0.3375), alc4
 place glue, (0.71894, 0.31181), glue1
 target glue1, 3
 place boomerang, (0.75473, 0.27639), boom1
-place alchemist, (0.81842, 0.70417), alc5
-upgrade alc5, 1, 1
 upgrade glue1, 3, 3, 2, 2, 3
 upgrade alc4, 1, 1, 2, 2
 upgrade boom1, 3, 3, 1, 1, 1

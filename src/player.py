@@ -642,6 +642,7 @@ class RatioFit:
                     self.egg_mode = best_track
                     self.in_egg = True
                     self.click_fixed("tracks %s" % best_track, confidence=0.6)
+                    self.click_fixed("tracks %s" % best_track, confidence=0.6)  # do it right or do it twice
                     log("\nopen " + best_track)
                     time.sleep(1)
                     if is_present(self.image_dict["buttons %s" % difficulty]):
@@ -716,7 +717,8 @@ class RatioFit:
         # then check for the game having crashed (1 hour since last command)
         if self.preferences["crash protection"] and self.preferences["steam path"]:
             if time.time() - self.command_time > 3600 or not window_is_open('BloonsTD6'):
-                log("\nGame crashed")
+                log("\nGame crashed ")
+                log(time.strftime("%m/%d/%Y, %H:%M:%S"))
                 self.command_time = time.time()
                 os.system("TASKKILL /F /IM bloonstd6.exe")
                 time.sleep(10)

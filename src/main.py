@@ -8,12 +8,12 @@ def main():
     # manage log files
     path = os.path.join(data_dir(), "log")
     for file in sorted(os.listdir(path)):
+        file_s = open(os.path.join(path, file))
         try:
-            file_s = open(os.path.join(path, file))
             content = file_s.read()
-            file_s.close()
         except UnicodeError:
             content = True
+        file_s.close()
         space_dot = (file.rfind(" "), file.rfind("."))
         if space_dot[0] != -1 and space_dot[1] != -1:
             try:
