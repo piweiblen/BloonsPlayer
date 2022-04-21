@@ -590,7 +590,7 @@ class RatioFit:
         scaled_skins = []
         for img in skins:
             scaled_skins.append(img.resize((int(img.width * scale), int(img.height * scale))))
-        if not any_present(scaled_skins, confidence=0.65):
+        if not any_present(scaled_skins, confidence=0.85):
             if inner:
                 self.wait_until_click(self.image_dict["heroes change"])
             else:
