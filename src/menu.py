@@ -68,9 +68,6 @@ class ChooseOption:
         # launch btd6 button
         self.launch_button = tkinter.Button(self.frame, text="launch btd6", command=self.launch, padx=5, pady=5)
         self.launch_button.grid(row=10, column=0, padx=5, pady=5)
-        # collection event button
-        self.easter_button = tkinter.Button(self.frame, text="egg mode", command=self.egg_mode, padx=5, pady=5)
-        self.easter_button.grid(row=10, column=2, padx=5, pady=5)
 
         # create menu bars
         self.screen_shot = tkinter.BooleanVar(self.root, self.prefs['screenshot'])
@@ -109,11 +106,15 @@ class ChooseOption:
                        "dark": ("#404040", "#202020", "#ffffff", "#497ba1"),
                        "amoled": ("#000000", "#101010", "#f0f0f0", "#c02020")}
         self.create_single_select_menu(style_menu, self.styles.keys(), self.set_style, self.prefs['theme'])
+        # event menu
+        event_menu = tkinter.Menu(self.menu_bar, tearoff=0)
+        event_menu.add_command(label="Easter Bonus Hunt", command=self.egg_mode)
         # build menu bar structure
         self.menu_bar.add_cascade(label="File", menu=file_menu)
         self.menu_bar.add_cascade(label="Filter", menu=filter_menu)
         self.menu_bar.add_cascade(label="Options", menu=option_menu)
         self.menu_bar.add_cascade(label="Themes", menu=style_menu)
+        self.menu_bar.add_cascade(label="Events", menu=event_menu)
         self.root.config(menu=self.menu_bar)
 
         # bot running menu
@@ -163,7 +164,6 @@ class ChooseOption:
         self.print_button.config(**button)
         self.go_button.config(**button)
         self.launch_button.config(**button)
-        self.easter_button.config(**button)
         self.back_button.config(**button)
         self.exit_button.config(**button)
         self.choice_listbox.config(**box)

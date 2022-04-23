@@ -341,6 +341,13 @@ class RatioFit:
         # high performance way to click an image which only ever appears in one location on screen
         # return true if clicked, return false if not present
         image = self.image_dict[image_name]
+        if confidence == 0:
+            if image_name in self.image_pos_dict:
+                known_pos = self.image_pos_dict[image_name]
+                pyautogui.click(*known_pos)
+                return True
+            else:
+                confidence = 0.85
         if image_name in self.image_pos_dict:
             known_pos = self.image_pos_dict[image_name]
             w = image.width * 13 // 10
@@ -351,6 +358,7 @@ class RatioFit:
                 pyautogui.click(*known_pos)
                 return True
             else:
+                pyautogui.moveTo((-10, -10))
                 return False
         else:
             location = pyautogui.locateCenterOnScreen(image, confidence=confidence)
@@ -641,8 +649,7 @@ class RatioFit:
                         continue
                     self.egg_mode = best_track
                     self.in_egg = True
-                    self.click_fixed("tracks %s" % best_track, confidence=0.6)
-                    self.click_fixed("tracks %s" % best_track, confidence=0.6)  # do it right or do it twice
+                    self.click_fixed("tracks %s" % best_track, confidence=0)
                     log("\nopen " + best_track)
                     time.sleep(1)
                     if is_present(self.image_dict["buttons %s" % difficulty]):
