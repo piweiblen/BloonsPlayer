@@ -358,7 +358,7 @@ class RatioFit:
                 pyautogui.click(*known_pos)
                 return True
             else:
-                pyautogui.moveTo((-10, -10))
+                pyautogui.moveTo((10, 10))
                 return False
         else:
             location = pyautogui.locateCenterOnScreen(image, confidence=confidence)

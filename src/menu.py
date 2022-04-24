@@ -210,7 +210,7 @@ class ChooseOption:
         if messagebox.askyesno(cant, cant+"\nWould you like to browse your files for steam?"):
             self.prefs['steam path'] = filedialog.askopenfilename(initialdir="/",
                                                          title="Select steam executable",
-                                                         filetypes=(("EXE (*.exe)", "*.exe"),))
+                                                         filetypes=(("Steam exe", "*steam.exe"),))
         self.update_prefs()
 
     def reset_steam(self):
