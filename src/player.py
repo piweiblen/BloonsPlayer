@@ -279,9 +279,16 @@ class RatioFit:
                 key = str(folder)+' '+str(img_name)
                 path = os.path.join(base_path, folder, image)
                 self.image_dict[key] = self.open_image(path, other)
+        # preprocess tracks
+        for name in self.image_dict:
+            if name.startswith('tracks'):
+                cropped = self.image_dict[name].point(lambda p: p > 254 and 255)
+                cropped = cropped.convert('L').point(lambda p: p > 254 and 255)
+                self.image_dict[name] = self.image_dict[name].crop(cropped.getbbox())
         # egg mode
         self.egg_mode = False
         self.in_egg = False
+        self.egg_type = ""
 
     def convert_pos(self, rel_pos):
         # return absolute screen position based on relative 0-1 floats
@@ -627,7 +634,7 @@ class RatioFit:
         if "buttons %s" % self.track_difficulties[track] not in self.image_pos_dict:
             time.sleep(1)
         if self.egg_mode:
-            egg_img = self.image_dict["edge cases easter bonus"]
+            egg_img = self.image_dict["edge cases " + self.egg_type]
             while 1:
                 if not self.click_fixed("buttons expert"):
                     click_image(play_button)
