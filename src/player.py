@@ -638,39 +638,39 @@ class RatioFit:
             while 1:
                 if not self.click_fixed("buttons expert"):
                     click_image(play_button)
-                time.sleep(2)
+                time.sleep(1.5)
                 pos = pyautogui.locateCenterOnScreen(egg_img, confidence=0.8)
                 if pos is None:
                     continue
-                else:
-                    best_dist = 0
-                    best_track = None
-                    for track in self.egg_dict:
-                        t_pos = pyautogui.locateCenterOnScreen(self.image_dict["tracks %s" % track], confidence=0.6)
-                        if t_pos is not None and t_pos[0] < pos[0]:
-                            new_dist = (t_pos[0] - pos[0])**2 + (t_pos[1] - pos[1])**2
-                            if best_track is None or new_dist < best_dist:
-                                best_track = track
-                                best_dist = new_dist
-                    if best_track is None:
-                        continue
-                    self.egg_mode = best_track
-                    self.in_egg = True
-                    self.click_fixed("tracks %s" % best_track, confidence=0)
-                    log("\nopen " + best_track)
-                    time.sleep(1)
-                    if is_present(self.image_dict["buttons %s" % difficulty]):
-                        egg_path = os.path.join(data_dir(), "tas", self.egg_dict[best_track])
-                        file = open(egg_path)
-                        self.egg_mode = tuple(file.read().split('\n'))
-                        file.close()
-                        open_args = parse_args(self.egg_mode[0], "open")
-                        if len(open_args) > 3:
-                            self.cur_hero = open_args[3]
-                            self.select_hero(0.52, inner=True)
-                        track, difficulty, mode = open_args[:3]
-                        self.cur_mode = (difficulty, mode)
-                        break
+                best_dist = 0
+                best_track = None
+                for track in self.egg_dict:
+                    t_pos = pyautogui.locateCenterOnScreen(self.image_dict["tracks %s" % track], confidence=0.85)
+                    if t_pos is not None and t_pos[0] < pos[0] and t_pos[1] < pos[1]:
+                        new_dist = (t_pos[0] - pos[0])**2 + (t_pos[1] - pos[1])**2
+                        if best_track is None or new_dist < best_dist:
+                            best_track = track
+                            best_dist = new_dist
+                if best_track is None:
+                    log("track not found")
+                    continue
+                self.egg_mode = best_track
+                self.in_egg = True
+                self.click_fixed("tracks %s" % best_track, confidence=0)
+                log("\nopen " + best_track)
+                time.sleep(1)
+                if is_present(self.image_dict["buttons %s" % difficulty]):
+                    egg_path = os.path.join(data_dir(), "tas", self.egg_dict[best_track])
+                    file = open(egg_path)
+                    self.egg_mode = tuple(file.read().split('\n'))
+                    file.close()
+                    open_args = parse_args(self.egg_mode[0], "open")
+                    if len(open_args) > 3:
+                        self.cur_hero = open_args[3]
+                        self.select_hero(0.52, inner=True)
+                    track, difficulty, mode = open_args[:3]
+                    self.cur_mode = (difficulty, mode)
+                    break
         else:
             while not self.click_fixed("tracks %s" % track):
                 if not self.click_fixed("buttons %s" % self.track_difficulties[track]):
@@ -789,7 +789,7 @@ class RatioFit:
             back = self.image_dict["edge cases back"]
             self.wait_until_click(reward)
             while not is_present(cont):
-                if not any(click_image(f) for f in [instas, insta_g, insta_b, insta_p, insta_y]):
+                if not any(click_image(f) for f in [reward, instas, insta_g, insta_b, insta_p, insta_y]):
                     self.check_edge_cases()
                     time.sleep(1)
                     pyautogui.click(*self.convert_pos((0.5, 0.5)))
