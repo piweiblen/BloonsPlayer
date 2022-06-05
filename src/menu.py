@@ -28,6 +28,8 @@ class ChooseOption:
         self.root.title(title)
         self.root.iconbitmap(resource_path("images\\miscellaneous\\techbot.ico"))
         self.root.geometry("700x500")
+        self.root.protocol('WM_DELETE_WINDOW', self.root.quit)
+
         # set up frame
         self.frame = tkinter.Frame(self.root)
         self.frame.columnconfigure(tuple(range(3)), weight=1)
@@ -68,9 +70,6 @@ class ChooseOption:
         # launch btd6 button
         self.launch_button = tkinter.Button(self.frame, text="launch btd6", command=self.launch, padx=5, pady=5)
         self.launch_button.grid(row=10, column=0, padx=5, pady=5)
-        # collection event button
-        self.collect_button = tkinter.Button(self.frame, text="totem mode", command=self.totem_mode, padx=5, pady=5)
-        self.collect_button.grid(row=10, column=2, padx=5, pady=5)
 
         # create menu bars
         self.screen_shot = tkinter.BooleanVar(self.root, self.prefs['screenshot'])
@@ -168,7 +167,6 @@ class ChooseOption:
         self.print_button.config(**button)
         self.go_button.config(**button)
         self.launch_button.config(**button)
-        self.collect_button.config(**button)
         self.back_button.config(**button)
         self.exit_button.config(**button)
         self.choice_listbox.config(**box)

@@ -652,7 +652,7 @@ class RatioFit:
                             best_track = track
                             best_dist = new_dist
                 if best_track is None:
-                    log("track not found")
+                    log("track not found\n")
                     continue
                 self.egg_mode = best_track
                 self.in_egg = True
