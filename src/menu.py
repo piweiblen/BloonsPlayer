@@ -70,6 +70,10 @@ class ChooseOption:
         # launch btd6 button
         self.launch_button = tkinter.Button(self.frame, text="launch btd6", command=self.launch, padx=5, pady=5)
         self.launch_button.grid(row=10, column=0, padx=5, pady=5)
+        # collection event button
+        self.collect_button = tkinter.Button(self.frame, text="patriot mode",
+                                             command=lambda: self.egg_mode("patriot bonus"), padx=5, pady=5)
+        self.collect_button.grid(row=10, column=2, padx=5, pady=5)
 
         # create menu bars
         self.screen_shot = tkinter.BooleanVar(self.root, self.prefs['screenshot'])
@@ -110,8 +114,9 @@ class ChooseOption:
         self.create_single_select_menu(style_menu, self.styles.keys(), self.set_style, self.prefs['theme'])
         # event menu
         event_menu = tkinter.Menu(self.menu_bar, tearoff=0)
-        event_menu.add_command(label="Easter Bonus Hunt", command=self.egg_mode)
-        event_menu.add_command(label="Totem Bonus Hunt", command=self.totem_mode)
+        event_menu.add_command(label="Easter Bonus Hunt", command=lambda: self.egg_mode("easter bonus"))
+        event_menu.add_command(label="Patriot Bonus Hunt", command=lambda: self.egg_mode("patriot bonus"))
+        event_menu.add_command(label="Totem Bonus Hunt", command=lambda: self.egg_mode("totem bonus"))
         # build menu bar structure
         self.menu_bar.add_cascade(label="File", menu=file_menu)
         self.menu_bar.add_cascade(label="Filter", menu=filter_menu)
@@ -167,6 +172,7 @@ class ChooseOption:
         self.print_button.config(**button)
         self.go_button.config(**button)
         self.launch_button.config(**button)
+        self.collect_button.config(**button)
         self.back_button.config(**button)
         self.exit_button.config(**button)
         self.choice_listbox.config(**box)
@@ -427,14 +433,9 @@ class ChooseOption:
         else:
             self.steam_prompt()
 
-    def egg_mode(self):
+    def egg_mode(self, event):
         self.pos_finder.egg_mode = True
-        self.pos_finder.egg_type = "easter bonus"
-        self.go()
-
-    def totem_mode(self):
-        self.pos_finder.egg_mode = True
-        self.pos_finder.egg_type = "totem bonus"
+        self.pos_finder.egg_type = event
         self.go()
 
     def get_choices(self):
