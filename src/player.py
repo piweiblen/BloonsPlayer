@@ -21,7 +21,7 @@ _enum_windows.restype = wintypes.BOOL
 def bring_to_front(window_name):
     hwnds = []
     def windowEnumerationHandler(hwnd, lparam):
-        hwnds.append(hwnd)
+        hwnds.append(hwnd & 0x00000000FFFFFFFF)
         return True
     func = WNDENUMPROC(windowEnumerationHandler)
     _enum_windows(func, 0)
@@ -257,6 +257,7 @@ class RatioFit:
         self.cur_hero = None
         self.abilities_repeat = []
         self.ab_repeat_on = False
+        self.pause_keys = False
         self.preferences = fetch_dict("preferences")
         self.command_time = time.time()
         # prep vars fo more detailed logging
@@ -308,7 +309,8 @@ class RatioFit:
         while self.ab_repeat_on:
             current_num = len(self.abilities_repeat)
             for key in self.abilities_repeat:
-                hit_key(key)
+                if not self.pause_keys:
+                    hit_key(key)
                 time.sleep(1/current_num)
 
     def update_prefs(self):
@@ -423,6 +425,7 @@ class RatioFit:
             if base_price:
                 self.wait_for_cash(price)
         # now place
+        self.pause_keys = True
         monkey = monkey.lower()
         position = (float(pos_x), float(pos_y))
         self.monkey_type[name] = monkey
@@ -430,8 +433,9 @@ class RatioFit:
         if monkey == 'hero':
             self.hero_name = name
         bring_to_front('BloonsTD6')
-        hit_keys(self.monkey_dict[monkey])
+        hit_key(self.monkey_dict[monkey])
         self.click(*position, delay=0.04)
+        self.pause_keys = False
 
     def get_numbers(self):
         # return the amount of cash the player has as an integer
@@ -612,6 +616,7 @@ class RatioFit:
                 self.wait_until_click(self.image_dict["heroes heroes"])
             while not any(click_image(img) for img in skins):
                 time.sleep(0.3)
+                self.check_edge_cases(time_only=True)
             if shows_up(self.image_dict["heroes select"], 2):
                 self.wait_until_click(self.image_dict["heroes select"])
             hit_key('escape')
@@ -622,6 +627,7 @@ class RatioFit:
         self.cur_mode = (difficulty, mode)
         play_button = self.image_dict["buttons play"]
         while not is_present(play_button):
+            self.check_edge_cases(time_only=True)
             click_image(self.image_dict["edge cases start"])
             self.collect_reward()
         if hero is not None:  # select the correct hero if specified
@@ -636,6 +642,7 @@ class RatioFit:
         if self.egg_mode:
             egg_img = self.image_dict["edge cases " + self.egg_type]
             while 1:
+                self.check_edge_cases(time_only=True)
                 if not self.click_fixed("buttons expert"):
                     click_image(play_button)
                 time.sleep(1.5)
@@ -673,6 +680,7 @@ class RatioFit:
                     break
         else:
             while not self.click_fixed("tracks %s" % track):
+                self.check_edge_cases(time_only=True)
                 if not self.click_fixed("buttons %s" % self.track_difficulties[track]):
                     click_image(play_button)
                 else:
@@ -697,9 +705,9 @@ class RatioFit:
             time.sleep(1)
             return None
         while not is_loading():  # make sure we see the loading screen
-            pass
+            self.check_edge_cases(time_only=True)
         while is_loading():  # wait for the loading screen
-            pass
+            self.check_edge_cases(time_only=True)
         time.sleep(self.delay)
 
     def check_edge_cases(self, time_only=False):
@@ -888,7 +896,9 @@ class RatioFit:
         try:
             self.open_track("dark castle", "easy", "standard")
             self.play(self.egg_mode)
-        except BloonsError:
+        except Exception as e:
+            if type(e) != BloonsError:
+                self.egg_mode = False
             raise
         finally:
             self.in_egg = False

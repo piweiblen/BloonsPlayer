@@ -9,6 +9,13 @@ import time
 import os
 
 
+def enable_grid_resize(frame, ranges=None):
+    if ranges is None:
+        ranges = [range(f) for f in frame.grid_size()]
+    frame.columnconfigure(tuple(ranges[0]), weight=1)
+    frame.rowconfigure(tuple(ranges[1]), weight=1)
+
+
 class ChooseOption:
 
     def __init__(self, title, pos_finder):
@@ -32,8 +39,8 @@ class ChooseOption:
 
         # set up frame
         self.frame = tkinter.Frame(self.root)
-        self.frame.columnconfigure(tuple(range(3)), weight=1)
-        self.frame.rowconfigure(tuple(range(11)), weight=1)
+        self.frame.grid(row=0, column=0, sticky='news')
+        enable_grid_resize(self.frame, (range(3), range(11)))
 
         # set up list boxes
         self.left_label = tkinter.Label(self.frame, text="All TAS scripts", borderwidth=10)
@@ -70,10 +77,6 @@ class ChooseOption:
         # launch btd6 button
         self.launch_button = tkinter.Button(self.frame, text="launch btd6", command=self.launch, padx=5, pady=5)
         self.launch_button.grid(row=10, column=0, padx=5, pady=5)
-        # collection event button
-        self.collect_button = tkinter.Button(self.frame, text="patriot mode",
-                                             command=lambda: self.egg_mode("patriot bonus"), padx=5, pady=5)
-        self.collect_button.grid(row=10, column=2, padx=5, pady=5)
 
         # create menu bars
         self.screen_shot = tkinter.BooleanVar(self.root, self.prefs['screenshot'])
@@ -83,7 +86,7 @@ class ChooseOption:
         # file menu
         file_menu = tkinter.Menu(self.menu_bar, tearoff=0)
         file_menu.add_command(label="Refresh Scripts", command=self.get_options)
-        file_menu.add_command(label="Open Data Directory", command=self.open_directory)
+        file_menu.add_command(label="Open Data Directory", command=lambda: os.system("start " + data_dir()))
         file_menu.add_command(label="Reset Steam File Path", command=self.reset_steam)
         file_menu.add_command(label="Exit", command=self.quit)
         # filter menu
@@ -127,8 +130,7 @@ class ChooseOption:
 
         # bot running menu
         self.run_frame = tkinter.Frame(self.root)
-        self.run_frame.columnconfigure(tuple(range(1)), weight=1)
-        self.run_frame.rowconfigure(tuple(range(2)), weight=1)
+        enable_grid_resize(self.run_frame, (range(1), range(2)))
         # back to menu button
         self.back_button = tkinter.Button(self.run_frame, text="Back to bot Menu",
                                           command=self.back_to_menu, padx=5, pady=5)
@@ -172,7 +174,6 @@ class ChooseOption:
         self.print_button.config(**button)
         self.go_button.config(**button)
         self.launch_button.config(**button)
-        self.collect_button.config(**button)
         self.back_button.config(**button)
         self.exit_button.config(**button)
         self.choice_listbox.config(**box)
@@ -211,15 +212,12 @@ class ChooseOption:
             file.close()
         self.perform_filtering()
 
-    def open_directory(self):
-        os.system("start " + data_dir())
-
     def steam_prompt(self):
         cant = "BloonsPlayer cannot find steam on your system"
         if messagebox.askyesno(cant, cant+"\nWould you like to browse your files for steam?"):
             self.prefs['steam path'] = filedialog.askopenfilename(initialdir="/",
-                                                         title="Select steam executable",
-                                                         filetypes=(("Steam exe", "*steam.exe"),))
+                                                                  title="Select steam executable",
+                                                                  filetypes=(("Steam exe", "*steam.exe"),))
         self.update_prefs()
 
     def reset_steam(self):
@@ -419,7 +417,7 @@ class ChooseOption:
                     self.pos_finder.play(choice)
                 except Exception as e:
                     if type(e) == MenuBackError:
-                        break
+                        return None
                     else:
                         log('\n' + repr(e))
                         if type(e) != BloonsError:
@@ -439,10 +437,9 @@ class ChooseOption:
         self.go()
 
     def get_choices(self):
-        return [self.scripts[c] for c in self.choices]
+        return [self.scripts[c] for c in self.choices if c in self.scripts]
 
     def display_pos(self):
-        previous = ""
         current = ""
         counter = 0
         while self.toggle_pos:
