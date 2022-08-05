@@ -12,8 +12,14 @@ import os
 def enable_grid_resize(frame, ranges=None):
     if ranges is None:
         ranges = [range(f) for f in frame.grid_size()]
-    frame.columnconfigure(tuple(ranges[0]), weight=1)
-    frame.rowconfigure(tuple(ranges[1]), weight=1)
+    clean_ranges = []
+    for elem in ranges:
+        if type(elem) == int:
+            clean_ranges.append((elem,))
+        else:
+            clean_ranges.append(tuple(elem))
+    frame.columnconfigure(clean_ranges[0], weight=1)
+    frame.rowconfigure(clean_ranges[1], weight=1)
 
 
 class ChooseOption:
@@ -35,12 +41,14 @@ class ChooseOption:
         self.root.title(title)
         self.root.iconbitmap(resource_path("images\\miscellaneous\\techbot.ico"))
         self.root.geometry("700x500")
-        self.root.protocol('WM_DELETE_WINDOW', self.root.quit)
+        self.root.minsize(300, 200)
+        self.root.protocol('WM_DELETE_WINDOW', self.quit)
+        enable_grid_resize(self.root, (0, 0))
 
         # set up frame
         self.frame = tkinter.Frame(self.root)
-        self.frame.grid(row=0, column=0, sticky='news')
-        enable_grid_resize(self.frame, (range(3), range(11)))
+        self.frame.columnconfigure((0, 2), weight=1, uniform="listboxes")
+        self.frame.rowconfigure(tuple(range(11)), weight=1)
 
         # set up list boxes
         self.left_label = tkinter.Label(self.frame, text="All TAS scripts", borderwidth=10)
@@ -58,19 +66,19 @@ class ChooseOption:
         kwargs = {"font": big_font, "image": self.pixel, "width": 40, "height": 40, "compound": "center"}
         # listbox manip buttons
         self.right_button = tkinter.Button(self.frame, text="⏵", command=self.move_right, **kwargs)
-        self.right_button.grid(row=3, column=1)
+        self.right_button.grid(row=3, column=1, padx=40)
         self.left_button = tkinter.Button(self.frame, text="⏴", command=self.move_left, **kwargs)
-        self.left_button.grid(row=4, column=1)
+        self.left_button.grid(row=4, column=1, padx=40)
         self.up_button = tkinter.Button(self.frame, text="⏶", command=self.move_up, **kwargs)
-        self.up_button.grid(row=5, column=1)
+        self.up_button.grid(row=5, column=1, padx=40)
         self.down_button = tkinter.Button(self.frame, text="⏷", command=self.move_down, **kwargs)
-        self.down_button.grid(row=6, column=1)
+        self.down_button.grid(row=6, column=1, padx=40)
 
         # go button
         self.go_button = tkinter.Button(self.frame, text="GO", command=self.go, padx=5, pady=5)
         self.go_button.grid(row=9, column=2, padx=5, pady=5)
         # create mouse position utility
-        self.print_button = tkinter.Button(self.frame, text="print mouse position", command=self.position_info,
+        self.print_button = tkinter.Button(self.frame, text="Display mouse position", command=self.position_info,
                                            padx=5, pady=5)
         self.print_button.grid(row=9, column=0, padx=5, pady=5)
         self.toggle_pos = False
@@ -82,6 +90,7 @@ class ChooseOption:
         self.screen_shot = tkinter.BooleanVar(self.root, self.prefs['screenshot'])
         self.log_times = tkinter.BooleanVar(self.root, self.prefs['log times'])
         self.crash_p = tkinter.BooleanVar(self.root, self.prefs['crash protection'])
+        self.rpc_bool = tkinter.BooleanVar(self.root, self.prefs['rich presence'])
         self.menu_bar = tkinter.Menu(self.root)
         # file menu
         file_menu = tkinter.Menu(self.menu_bar, tearoff=0)
@@ -109,6 +118,8 @@ class ChooseOption:
                                     variable=self.log_times, command=self.update_prefs)
         option_menu.add_checkbutton(label="Restart Game On Crash", onvalue=1, offvalue=0,
                                     variable=self.crash_p, command=self.crash_p_toggle)
+        option_menu.add_checkbutton(label="Discord Rich Presence", onvalue=1, offvalue=0,
+                                    variable=self.rpc_bool, command=self.rpc_toggle)
         # style menu
         style_menu = tkinter.Menu(self.menu_bar, tearoff=0)
         self.styles = {"light": ("#f0f0f0", "#ffffff", "#000000", "#0078d7"),
@@ -141,18 +152,21 @@ class ChooseOption:
         self.exit_button.grid(row=1, column=0, padx=5, pady=5)
 
         # suffix
+        self.rpc_toggle()
         self.set_frame(0)
         self.set_style(self.prefs['theme'])
         self.get_options()
         self.update_prefs()
 
     def set_frame(self, ind):
-        self.frame.pack_forget()
-        self.run_frame.pack_forget()
-        if ind == 0:
-            self.frame.pack(fill=tkinter.BOTH, expand=1)
-        elif ind == 1:
-            self.run_frame.pack(fill=tkinter.BOTH, expand=1)
+        if ind == 0 and self.pos_finder.rpc is not None:
+            self.pos_finder.rpc.update(pid=os.getpid(), details="Browsing menu", large_image="techbot",
+                                       large_text="bot", small_image="menu", small_text="menu")
+        all_frames = [self.frame, self.run_frame]
+        for this_frame in all_frames:
+            this_frame.grid_forget()
+        this_frame = all_frames[ind]
+        this_frame.grid(row=0, column=0, padx=5, pady=5, sticky='news')
 
     def set_style(self, name):
         back, more_back, front, accent = self.styles[name]
@@ -163,6 +177,7 @@ class ChooseOption:
         box = {"bg": more_back, "fg": front, "selectbackground": accent, "selectforeground": more_back}
         menu_style = {"bd": 0, "bg": back, "fg": front, "activebackground": accent,
                       "activeforeground": more_back, "selectcolor": front}
+        self.root.config(bg=back)
         self.frame.config(bg=back)
         self.run_frame.config(bg=back)
         self.right_label.config(**standard)
@@ -231,10 +246,29 @@ class ChooseOption:
                 self.crash_p.set(bool(self.prefs['steam path']))
         self.update_prefs()
 
+    def rpc_toggle(self):
+        self.update_prefs()
+        if self.rpc_bool.get():
+            try:
+                import pypresence
+            except ImportError:
+                print("pypresence failed to import")
+                return None
+            self.pos_finder.rpc = pypresence.Presence("1003858417506598972")
+            self.pos_finder.rpc.connect()
+            self.pos_finder.rpc.update(pid=os.getpid(), details="Browsing menu", large_image="techbot",
+                                       large_text="bot", small_image="menu", small_text="menu")
+        else:
+            if self.pos_finder.rpc is not None:
+                self.pos_finder.rpc.clear(pid=os.getpid())
+                self.pos_finder.rpc.close()
+            self.pos_finder.rpc = None
+
     def update_prefs(self):
         self.prefs['screenshot'] = self.screen_shot.get()
         self.prefs['log times'] = self.log_times.get()
         self.prefs['crash protection'] = self.crash_p.get()
+        self.prefs['rich presence'] = self.rpc_bool.get()
         self.prefs['choices'] = self.choices
         save_dict('preferences', self.prefs)
         self.pos_finder.update_prefs()
@@ -406,14 +440,16 @@ class ChooseOption:
         newt.start()
 
     def run_bot(self):
-        choices = self.get_choices()
+        choices = [c for c in self.choices if c in self.scripts]
         if self.pos_finder.egg_mode and not choices:
-            choices.append(None)
+            choices.append(list(self.scripts.keys())[0])
         if not choices:
             return None
         while self.mainloop:
-            for choice in choices:
+            for name in choices:
+                choice = self.scripts[name]
                 try:
+                    self.pos_finder.script_name = name
                     self.pos_finder.play(choice)
                 except Exception as e:
                     if type(e) == MenuBackError:
@@ -435,9 +471,6 @@ class ChooseOption:
         self.pos_finder.egg_mode = True
         self.pos_finder.egg_type = event
         self.go()
-
-    def get_choices(self):
-        return [self.scripts[c] for c in self.choices if c in self.scripts]
 
     def display_pos(self):
         current = ""

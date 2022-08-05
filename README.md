@@ -5,7 +5,8 @@ If you want to contribute your scripts to the project join the [discord](https:/
 # Dependencies
 BloonsPlayer supports python 3 on Windows and requires
 [PyAutoGui](https://pypi.org/project/PyAutoGUI/), [PIL](https://pypi.org/project/Pillow/), 
-[scipy](https://pypi.org/project/scipy/), and [OpenCV](https://pypi.org/project/opencv-python/). 
+[scipy](https://pypi.org/project/scipy/), [OpenCV](https://pypi.org/project/opencv-python/), 
+and [pypresence](https://pypi.org/project/pypresence/). 
 Run the following command to make sure these packages are all installed.
 ```
 pip install -r requirements.txt
@@ -14,12 +15,42 @@ In game, the hotkeys must be set to default, auto start must be on, and placemen
 
 # Usage
 The BloonsPlayer code can be found in the src folder. 
-For users who want nothing to do with programming, a precompiled executable can be found in the build folder.
+A precompiled executable can be found in the latest release.
 
 It should be noted that while the script is running your computer will not really be usable, 
 as the script needs to occasionally input keystrokes and take control of your mouse. 
 Besides directly killing the program by exiting or killing execution in your IDE, 
 you can move your cursor to any corner of your monitor which will eventually trigger PyAutoGui's built in fail-safe.
+
+# GUI
+The BloonsPlayer GUI main menu consists of a list of available TAS scripts on the left, 
+and a list of selected TAS scripts on the right.
+The buttons between allow the user to customize the list of scripts to run.  
+-The right arrow copies any scripts selected on the left to the end of the list on the right.  
+-The left arrow removes any scripts selected on the right from the list of scripts to run.  
+-The up arrow moves any scripts selected on the right up one place within the list.  
+-The down arrow moves any scripts selected on the right down one place within the list.
+
+At the bottom of the main menu, there are the following buttons.  
+-The "Display mouse position" button, when pressed, 
+will display the relative coordinates of your mouse in place of its text.
+During this time, if the mouse is held still for 2 seconds while on the computer's main monitor, 
+the displayed position will also be copied to the clipboard.  
+-The "launch btd6" button will launch BloonsTD6 assuming it knows the path to your steam executable.
+-The "GO" button will set the bot going on the scripts which you've specified
+
+The menu bar at the top has the following sub-menus  
+-The "File" sub-menu holds various utilities for script handling.  
+-The "Filter" sub-menu allows the user to filter down the list of scripts on the left.  
+-The "Options" sub-menu allows the user to alter some functionality of the bot.  
+-The "Theme" sub-menu allows the user to customize how the GUI looks.  
+-The "Events" sub-menu allows the user to run various specialized programs 
+which hunt for rewards during BloonsTD6 events. The specifics of this can be altered in `data\dicts\egg.txt`.
+
+While running scripts, the GUI displays only two buttons.  
+-The "Back to bot Menu" button cancels the currently running script and returns the GUI to the main menu.  
+-The "Exit" button cancels the currently running script and closes the GUI.
+
 
 # Scripting
 The scripts for BloonsPlayer are stored in the `data\tas\\` directory.
@@ -106,6 +137,7 @@ The valid course names are:
 * pat's pond
 * peninsula
 * quad
+* quarry
 * quiet street
 * rake
 * ravine
@@ -142,6 +174,7 @@ And the valid course modes are:
 * military only
 * primary only
 * reverse
+* sandbox
 * standard
 
 And the valid heroes are:

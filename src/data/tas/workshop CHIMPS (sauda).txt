@@ -1,0 +1,93 @@
+open workshop, hard, CHIMPS, sauda
+place dart, (0.12007, 0.59352), dart1
+target dart1, 3
+place dart, (0.35559, 0.46481), dart2
+target dart2, 3
+place dart, (0.43740, 0.57685), dart3
+start round
+money 430
+change speed
+place ninja, (0.55826, 0.46389), ninja1
+change speed
+upgrade ninja1, 1, 3, 3, 1
+place hero, (0.61528, 0.45648), sauda
+upgrade ninja1, 1
+place druid, (0.44298, 0.46204), druid1
+target druid1, 3
+upgrade druid1, 1, 2, 2, 2
+place spikes, (0.97538, 0.583), spac1
+upgrade spac1, 3, 3
+target spac1, 1
+upgrade spac1, 3, 3, 2, 2
+place village, (0.85762, 0.66019), village1
+upgrade village1, 3, 3
+place alchemist, (0.928, 0.578), alch1
+upgrade alch1, 1, 1, 1
+place spikes, (0.97538, 0.66296), spac2
+upgrade spac2, 1, 1, 1, 2, 2
+place alchemist, (0.92332, 0.63889), alch2
+upgrade alch2, 1, 1, 1
+upgrade village1, 1, 1
+place sniper, (0.736, 0.71481), sniper1
+target sniper1, 3
+upgrade sniper1, 1, 1, 1, 2, 1, 2
+place bomb, (0.61528, 0.39537), bomb1
+upgrade bomb1, 3, 3, 3, 1, 1, 3
+place alchemist, (0.61590, 0.32685), alch3
+upgrade alch3, 1, 1, 1, 2, 2, 1
+place village, (0.73366, 0.38889), village2
+upgrade village2, 1, 1
+round 63
+remove (0.48698, 0.21111)
+upgrade village2, 1, 2
+place alchemist, (0.77767, 0.34074), alch4
+place glue, (0.71879, 0.31574), glue1
+place boomerang, (0.76465, 0.28611), boomer1
+target boomer1, 3
+place alchemist, (0.83531, 0.73519), alch5
+upgrade alch5, 1, 1, 1
+target glue1, 3
+upgrade glue1, 2, 3, 3, 2, 3
+upgrade alch4, 1, 1, 2, 2
+upgrade boomer1, 2, 2, 3, 3, 3, 3
+upgrade alch4, 1, 1
+upgrade village2, 2
+place boomerang, (0.72250, 0.23426), boomer2
+place boomerang, (0.77581, 0.22500), boomer3
+target boomer2, 3
+target boomer3, 3
+upgrade boomer2, 2, 2, 3, 3, 3, 3
+upgrade boomer3, 2, 2, 3, 3, 3, 3
+upgrade spac1, 3
+upgrade alch1, 1, 2, 2
+place boomerang, (0.73862, 0.17593), boomer4
+target boomer4, 3
+upgrade boomer4, 2, 2, 3, 3, 3, 3
+place mortar, (0.86320, 0.82315), mortar1
+upgrade mortar1, 3
+target mortar1, 1, (0.66982, 0.11019)
+upgrade mortar1, 2, 2, 3, 3, 3
+place alchemist, (0.85018, 0.32130), alch6
+upgrade alch6, 1, 1, 2, 2, 1, 1
+place spikes, (0.97166, 0.38981), spac3
+upgrade spac3, 1, 1, 2, 2, 2, 2
+round 98
+delay 8
+remove (0.48698, 0.21111)
+delay 8
+remove (0.44484, 0.85648)
+round 99
+use ability 3
+remove (0.48698, 0.21111)
+round 100
+repeat ability 1
+repeat ability 2
+repeat ability 3
+remove (0.48698, 0.21111)
+remove (0.44484, 0.85648)
+delay 5
+remove (0.48698, 0.21111)
+remove (0.44484, 0.85648)
+delay 5
+remove (0.48698, 0.21111)
+remove (0.44484, 0.85648)

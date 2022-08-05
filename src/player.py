@@ -50,6 +50,7 @@ def window_is_open(window_name):
             return True
     return False
 
+
 # --- keyboard input ---
 user32 = ctypes.WinDLL('user32', use_last_error=True)
 INPUT_MOUSE    = 0
@@ -214,6 +215,10 @@ class BloonsError(Exception):
     pass
 
 
+class PremieError(Exception):
+    pass
+
+
 class RatioFit:
 
     def __init__(self):
@@ -259,6 +264,10 @@ class RatioFit:
         self.ab_repeat_on = False
         self.pause_keys = False
         self.preferences = fetch_dict("preferences")
+        self.rpc = None
+        self.script_name = ""
+        self.large_img = ""
+        self.start_time = time.time()
         self.command_time = time.time()
         # prep vars fo more detailed logging
         self.time_log = [""]
@@ -542,30 +551,26 @@ class RatioFit:
         pyautogui.click(*position)  # select monkey
         if monkey_name == self.hero_name:
             if len(path) == 1:
-                num = path[0]
+                path = path[0] * [1]
             else:
-                num = len(path)
-            for f in range(num):
-                while not self.ready_to_upgrade_hero():
-                    if self.check_edge_cases():
-                        pyautogui.click(*position)
-                time.sleep(self.delay)
-                bring_to_front('BloonsTD6')
-                hit_keys(self.upgrade_dict[1])
-                log(self.upgrade_dict[1])
-                time.sleep(self.delay)
-        else:
-            if type(path) == int:
-                path = [path]
-            for p in path:
-                while not self.ready_to_upgrade(p):
-                    if self.check_edge_cases():
-                        pyautogui.click(*position)
-                time.sleep(self.delay)
-                bring_to_front('BloonsTD6')
-                hit_keys(self.upgrade_dict[p])
-                log(self.upgrade_dict[p])
-                time.sleep(self.delay)
+                path = len(path) * [1]
+        for p in path:
+            while 1:
+                if self.cur_mode[1] == "sandbox":
+                    break  # we have infinite money, don't bother checking
+                if monkey_name == self.hero_name:
+                    if self.ready_to_upgrade_hero():
+                        break
+                else:
+                    if self.ready_to_upgrade(p):
+                        break
+                if self.check_edge_cases():
+                    pyautogui.click(*position)
+            time.sleep(self.delay)
+            bring_to_front('BloonsTD6')
+            hit_keys(self.upgrade_dict[p])
+            log(self.upgrade_dict[p])
+            time.sleep(self.delay)
         bring_to_front('BloonsTD6')
         hit_key('escape')
 
@@ -677,6 +682,7 @@ class RatioFit:
                         self.select_hero(0.52, inner=True)
                     track, difficulty, mode = open_args[:3]
                     self.cur_mode = (difficulty, mode)
+                    self.large_img = best_track.replace(' ', '_').replace("'", '_')
                     break
         else:
             while not self.click_fixed("tracks %s" % track):
@@ -696,7 +702,7 @@ class RatioFit:
         if shows_up(self.image_dict["edge cases overwrite"], 0.5):
             self.wait_until_click(self.image_dict["buttons OK"])
             time.sleep(1)
-        if mode in ["chimps", "impoppable", "deflation"]:
+        if mode in ["chimps", "impoppable", "deflation", "sandbox"]:
             self.wait_until_click(self.image_dict["buttons OK"])
             time.sleep(2)
             return None
@@ -716,26 +722,32 @@ class RatioFit:
         if self.menu_halt:
             self.menu_halt = False
             raise MenuBackError("Go back to the menu")
-        # check if we've leveled up
-        if not time_only and click_image(self.image_dict["edge cases LEVEL UP"]):
-            log("\nLevel up")
-            if shows_up(self.image_dict["edge cases monkey knowledge"], 10):
-                click_image(self.image_dict["edge cases monkey knowledge"])
-            time.sleep(self.delay)
-            hit_keys('  ', 0.5)
-            return True
-        # then check for tas failure
-        if not time_only and is_present(self.image_dict["edge cases restart"]):
-            if self.preferences["screenshot"]:
-                self.wait_until_click(self.image_dict["edge cases review"])
-                time.sleep(1)
-                cur_time = time.strftime("%Y-%m-%d-%H-%M-%S")
-                log("\nScreenshot taken "+cur_time)
-                pyautogui.screenshot(os.path.join(data_dir(), "log", "screenshot "+cur_time+".png"))
-                hit_key("escape")
-            self.cancel_repeat_keys()
-            self.wait_until_click(self.image_dict["buttons home"])
-            raise BloonsError("TAS Failed")
+        if not time_only:
+            # collect round 100 insta if present
+            click_image(self.image_dict["buttons insta-monkey"])
+            # check if we finished prematurely
+            if is_present(self.image_dict["buttons NEXT"]):
+                raise PremieError("Script succeeded prematurely")
+            # check if we've leveled up
+            if click_image(self.image_dict["edge cases LEVEL UP"]):
+                log("\nLevel up")
+                if shows_up(self.image_dict["edge cases monkey knowledge"], 10):
+                    click_image(self.image_dict["edge cases monkey knowledge"])
+                time.sleep(self.delay)
+                hit_keys('  ', 0.5)
+                return True
+            # then check for tas failure
+            if is_present(self.image_dict["edge cases restart"]):
+                if self.preferences["screenshot"]:
+                    self.wait_until_click(self.image_dict["edge cases review"])
+                    time.sleep(1)
+                    cur_time = time.strftime("%Y-%m-%d-%H-%M-%S")
+                    log("\nScreenshot taken "+cur_time)
+                    pyautogui.screenshot(os.path.join(data_dir(), "log", "screenshot "+cur_time+".png"))
+                    hit_key("escape")
+                self.cancel_repeat_keys()
+                self.wait_until_click(self.image_dict["buttons home"])
+                raise BloonsError("TAS Failed")
         # then check for the game having crashed (1 hour since last command)
         if self.preferences["crash protection"] and self.preferences["steam path"]:
             if time.time() - self.command_time > 3600 or not window_is_open('BloonsTD6'):
@@ -811,7 +823,6 @@ class RatioFit:
         # waits for the round to finish, then goes to the home screen
         next_but = self.image_dict["buttons NEXT"]
         while not is_present(next_but):
-            click_image(self.image_dict["buttons insta-monkey"])  # for chimps/impoppable
             self.check_edge_cases()
         time.sleep(self.delay)
         self.wait_until_click(next_but)
@@ -826,6 +837,10 @@ class RatioFit:
         self.collect_reward()
 
     def do_command(self, command):
+        if self.rpc is not None:
+            self.rpc.update(pid=os.getpid(), details=self.script_name, state=command,
+                            start=self.start_time, large_image=self.large_img, large_text="map",
+                            small_image="techbot", small_text="bot")
         # interpret and execute a command
         self.command_time = time.time()
         # first do a bit of cleanup
@@ -860,6 +875,7 @@ class RatioFit:
             log('\nUnknown command ' + command)
 
     def play(self, parameters):
+        self.start_time = time.time()
         if self.egg_mode and not self.in_egg:
             self.run_egg_mode()
             return None
@@ -868,6 +884,8 @@ class RatioFit:
         self.monkey_type = dict()
         self.play_start_time = time.time()
         if not self.in_egg:
+            map_name = parse_args(parameters[0], "open")[0]
+            self.large_img = map_name.replace(' ', '_').replace("'", '_')
             self.do_command(parameters[0])  # should open the track
         if self.preferences["log times"]:
             # begin logging times if that option was selected
@@ -886,14 +904,25 @@ class RatioFit:
             else:
                 hit_keys('  ', self.delay)
         for command in parameters[2:]:
-            self.do_command(command)
-            time.sleep(self.delay)
-        log('\n' + 'Waiting for track to finish, ')
+            try:
+                self.do_command(command)
+                time.sleep(self.delay)
+            except PremieError:
+                log('\nTrack finished prematurely')
+        log('\nWaiting for track to finish, ')
         log(time.strftime("%m/%d/%Y, %H:%M:%S"))
+        if self.rpc is not None:
+            self.rpc.update(pid=os.getpid(), details=self.script_name, state="Waiting to finish",
+                            start=self.start_time, large_image=self.large_img, large_text="map",
+                            small_image="techbot", small_text="bot")
         self.wait_to_finish()
 
     def run_egg_mode(self):
         try:
+            if self.rpc is not None:
+                self.rpc.update(pid=os.getpid(), details=self.egg_type+' mode', state="finding rewards",
+                                start=self.start_time, large_image="collection", large_text="collection",
+                                small_image="techbot", small_text="bot")
             self.open_track("dark castle", "easy", "standard")
             self.play(self.egg_mode)
         except Exception as e:
