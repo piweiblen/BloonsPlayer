@@ -810,7 +810,7 @@ class RatioFit:
             self.wait_until_click(reward)
             while not is_present(cont):
                 if not any(click_image(f) for f in [reward, instas, insta_g, insta_b, insta_p, insta_y]):
-                    self.check_edge_cases()
+                    self.check_edge_cases(time_only=True)
                     time.sleep(1)
                     pyautogui.click(*self.convert_pos((0.5, 0.5)))
                     if click_image(back):
@@ -823,7 +823,10 @@ class RatioFit:
         # waits for the round to finish, then goes to the home screen
         next_but = self.image_dict["buttons NEXT"]
         while not is_present(next_but):
-            self.check_edge_cases()
+            try:
+                self.check_edge_cases()
+            except PremieError:
+                break
         time.sleep(self.delay)
         self.wait_until_click(next_but)
         self.cancel_repeat_keys()
