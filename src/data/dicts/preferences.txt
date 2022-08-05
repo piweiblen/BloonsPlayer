@@ -3,6 +3,7 @@
 'log times': False,
 'crash protection': False,
 'steam path': '',
+'rich presence': False,
 'theme': 'dark',
 'choices': [],
 'filters': {}
