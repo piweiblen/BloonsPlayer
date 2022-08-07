@@ -60,6 +60,17 @@ KEYEVENTF_EXTENDEDKEY = 0x0001
 KEYEVENTF_KEYUP       = 0x0002
 KEYEVENTF_UNICODE     = 0x0004
 KEYEVENTF_SCANCODE    = 0x0008
+MOUSEEVENTF_MOVE = 0x0001  # mouse move
+MOUSEEVENTF_LEFTDOWN = 0x0002  # left button down
+MOUSEEVENTF_LEFTUP = 0x0004  # left button up
+MOUSEEVENTF_RIGHTDOWN = 0x0008  # right button down
+MOUSEEVENTF_RIGHTUP = 0x0010  # right button up
+MOUSEEVENTF_MIDDLEDOWN = 0x0020  # middle button down
+MOUSEEVENTF_MIDDLEUP = 0x0040  # middle button up
+MOUSEEVENTF_WHEEL = 0x0800  # wheel button rolled
+MOUSEEVENTF_ABSOLUTE = 0x8000  # absolute move
+SM_CXSCREEN = 0
+SM_CYSCREEN = 1
 MAPVK_VK_TO_VSC = 0
 VK_TAB  = 0x09
 VK_MENU = 0x12
@@ -115,6 +126,18 @@ def releasekey(hexKeyCode):
     x = INPUT(type=INPUT_KEYBOARD,
               ki=KEYBDINPUT(wVk=hexKeyCode,
                             dwFlags=KEYEVENTF_KEYUP))
+    user32.SendInput(1, ctypes.byref(x), ctypes.sizeof(x))
+
+def movemouse(x_pos, y_pos):
+    # re-implement failsafe
+    pos = pyautogui.position()
+    sz = pyautogui.size()
+    if pos[0] in [0, sz[0]] and pos[1] in [0, sz[1]]:
+        raise pyautogui.FailSafeException("PyAutoGUI fail-safe triggered")
+    x_calc = int(65536 * x_pos / user32.GetSystemMetrics(SM_CXSCREEN) + 1)
+    y_calc = int(65536 * y_pos / user32.GetSystemMetrics(SM_CYSCREEN) + 1)
+    x = INPUT(type=INPUT_MOUSE,
+              mi=MOUSEINPUT(dx=x_calc, dy=y_calc, dwFlags=MOUSEEVENTF_MOVE | MOUSEEVENTF_ABSOLUTE))
     user32.SendInput(1, ctypes.byref(x), ctypes.sizeof(x))
 
 
@@ -206,7 +229,7 @@ def hit_key(key, delay=0.001):
     hit_keys([key], delay=delay)
 
 
-# --- player ---
+# --- errors ---
 class MenuBackError(Exception):
     pass
 
@@ -219,6 +242,44 @@ class PremieError(Exception):
     pass
 
 
+# --- thread handler ---
+class ThreadHandler:
+
+    def __init__(self):
+        self.running = []
+        self.thread_history = []
+
+    def begin(self, func):
+        if func in self.running:
+            return False
+        self.running.append(func)
+
+        def wrapper():
+            while func in self.running:
+                func()
+
+        newt = threading.Thread(target=wrapper, daemon=True)
+        newt.start()
+        self.thread_history.append(newt)
+        return True
+
+    def end(self, func):
+        if func not in self.running:
+            return False
+        self.running.remove(func)
+        return True
+
+    def end_all(self):
+        self.running = []
+
+    def is_running(self, func):
+        return func in self.running
+
+    def any_running(self):
+        return any(f.is_alive() for f in self.thread_history)
+
+
+# --- player ---
 class RatioFit:
 
     def __init__(self):
@@ -250,6 +311,15 @@ class RatioFit:
         golden_ratio = ratio - sidebar_ratio  # more like 3/2
         self.width_mod = self.width / (self.height * golden_ratio)
         # initialize player variables
+        self.threader = ThreadHandler()
+        self.command_dict = {"use ability": hit_key,
+                             "change speed": lambda *x: hit_key(' '),
+                             "start round": lambda *x: hit_keys('  ', self.delay)}
+        prefix = "TAS_"
+        for func in dir(self):
+            if func.startswith(prefix):
+                name = func[len(prefix):].replace("_", " ")
+                self.command_dict[name] = getattr(self, func)
         self.upgrade_dict = {1: ',', 2: '.', 3: '/'}
         self.monkey_dict = fetch_dict("monkey hotkeys")
         self.track_difficulties = fetch_dict("map difficulties")
@@ -261,9 +331,11 @@ class RatioFit:
         self.cur_mode = (None, None)
         self.cur_hero = None
         self.abilities_repeat = []
-        self.ab_repeat_on = False
         self.pause_keys = False
+        self.pause_mouse = False
+        self.move_args = []
         self.preferences = fetch_dict("preferences")
+        self.edge_case = 0
         self.rpc = None
         self.script_name = ""
         self.large_img = ""
@@ -275,6 +347,8 @@ class RatioFit:
             self.time_log.append(str(f+1))
         self.play_start_time = 0
         self.round_logger = False
+        self.log_round = None
+        self.log_time = 0
         # open and convert all images
         self.image_pos_dict = {}
         self.image_dict = {}
@@ -315,34 +389,33 @@ class RatioFit:
         return x, y
 
     def timer_hit(self):
-        while self.ab_repeat_on:
-            current_num = len(self.abilities_repeat)
-            for key in self.abilities_repeat:
-                if not self.pause_keys:
-                    hit_key(key)
-                time.sleep(1/current_num)
+        current_num = len(self.abilities_repeat)
+        if not current_num:
+            time.sleep(0.1)
+        for key in self.abilities_repeat:
+            if not self.pause_keys:
+                hit_key(key)
+            time.sleep(1/current_num)
 
     def update_prefs(self):
         self.preferences = fetch_dict("preferences")
 
-    def add_repeat_key(self, key):
+    def TAS_repeat_ability(self, key):
+        # add the specified key to the list of repeated abilities
         key = str(key)
         self.abilities_repeat.append(key)
-        if not self.ab_repeat_on:
-            self.ab_repeat_on = True
-            newt = threading.Thread(target=self.timer_hit, daemon=True)
-            newt.start()
+        self.threader.begin(self.timer_hit)
 
-    def remove_repeat_key(self, key):
+    def TAS_stop_ability(self, key):
         key = str(key)
         if key in self.abilities_repeat:
             self.abilities_repeat.remove(key)
         if not self.abilities_repeat:
-            self.ab_repeat_on = False
+            self.threader.end(self.timer_hit)
 
-    def cancel_repeat_keys(self, *args):
+    def TAS_stop_all_abilities(self, *args):
         self.abilities_repeat = []
-        self.ab_repeat_on = False
+        self.threader.end(self.timer_hit)
 
     def open_image(self, path, other):
         # opens and scales images
@@ -391,27 +464,66 @@ class RatioFit:
         while not click_image(image):
             self.check_edge_cases(time_only=True)
 
-    def move_to(self, pos_x, pos_y, duration=0):
-        position = (float(pos_x), float(pos_y))
+    def TAS_move(self, duration, *args, is_rep=False):
+        if not is_rep:
+            self.pause_mouse = False
         duration = float(duration)
-        converted_pos = self.convert_pos(position)
-        pyautogui.moveTo(*converted_pos, duration)
+        positions = []
+        fps = 60
+        for f in range(0, len(args), 2):
+            positions.append(numpy.array(self.convert_pos((float(args[f]), float(args[f+1])))))
+        total_dist = 0
+        if len(positions) == 0:  # no positions
+            return None
+        if duration < 1 / fps:
+            for position in positions:
+                pyautogui.moveTo(position)
+            return None
+        if len(positions) == 1:  # one position so add
+            positions.insert(0, numpy.array(pyautogui.position()))
+        for f in range(1, len(positions)):
+            total_dist += numpy.linalg.norm(positions[f] - positions[f-1])
+        if total_dist == 0:
+            return None
+        for f in range(1, len(positions)):
+            this_dist = numpy.linalg.norm(positions[f] - positions[f-1])
+            steps = int(fps * duration * this_dist / total_dist)
+            for g in range(steps):
+                if not self.pause_mouse:
+                    pos = (g * positions[f] + (steps - g) * positions[f-1]) / steps
+                    temp = time.time()
+                    movemouse(*pos)
+                    print(time.time() - temp)
+                time.sleep(1 / fps)
 
-    def click(self, pos_x, pos_y, delay=0.):
+    def move_rep(self):
+        self.TAS_move(*self.move_args, is_rep=True)
+
+    def TAS_repeat_move(self, duration, *args):
+        self.pause_mouse = False
+        self.move_args = (duration, *args)
+        self.threader.begin(self.move_rep)
+
+    def TAS_stop_repeat_move(self):
+        self.threader.end(self.move_rep)
+
+    def TAS_click(self, pos_x, pos_y, delay=0.):
         position = (float(pos_x), float(pos_y))
         converted_pos = self.convert_pos(position)
+        self.pause_mouse = True
+        time.sleep(delay/2)
         pyautogui.moveTo(*converted_pos)
         time.sleep(delay/2)
         pyautogui.click(*converted_pos)
-        time.sleep(delay/2)
+        self.pause_mouse = False
 
-    def remove_obstacle(self, pos_x, pos_y):
-        self.click(pos_x, pos_y)
+    def TAS_remove(self, pos_x, pos_y):
+        self.TAS_click(pos_x, pos_y)
         while not click_image(self.image_dict["buttons obstacle"]):
             if self.check_edge_cases():
-                self.click(pos_x, pos_y)
+                self.TAS_click(pos_x, pos_y)
 
-    def place(self, monkey, pos_x, pos_y, name, no_delay=False):
+    def TAS_place(self, monkey, pos_x, pos_y, name, no_delay=False):
         # place the specified monkey at the specified position
         # first wait for enough money
         if not no_delay:
@@ -432,7 +544,7 @@ class RatioFit:
             else:
                 price = base_price
             if base_price:
-                self.wait_for_cash(price)
+                self.TAS_money(price)
         # now place
         self.pause_keys = True
         monkey = monkey.lower()
@@ -443,7 +555,7 @@ class RatioFit:
             self.hero_name = name
         bring_to_front('BloonsTD6')
         hit_key(self.monkey_dict[monkey])
-        self.click(*position, delay=0.04)
+        self.TAS_click(*position, delay=0.04)
         self.pause_keys = False
 
     def get_numbers(self):
@@ -464,7 +576,7 @@ class RatioFit:
             xs, ys = numpy.where(new_arr != 0)
             if xs.size > 0 and ys.size > 0:
                 new_arr = new_arr[min(xs):max(xs)+1, min(ys):max(ys)+1]
-                if new_arr.size > (h**2)/8 and new_arr.shape[0] > h/2:
+                if new_arr.size > (h**2)/8 and new_arr.shape[0] > h/1.9:
                     spot = pos_insert(hors, min(ys))
                     sections.insert(spot, new_arr)
         nums = []
@@ -489,30 +601,26 @@ class RatioFit:
         return nums
 
     def log_round_times(self):
-        # first wait until wee see any round number and set that as the first round
-        next_round = 0
-        while self.round_logger:
+        if not self.log_round:
             nums = self.get_numbers()
             if len(nums) > 2:
-                next_round = nums[2]
-                break
+                self.log_round = nums[2]
+            self.log_time = self.play_start_time
             time.sleep(0.1)
-        last_time = self.play_start_time
-        # then just log times each time the round ticks up
-        while self.round_logger:
+        else:
             nums = self.get_numbers()
-            if len(nums) > 2 and nums[2] == next_round:
+            if len(nums) > 2 and nums[2] == self.log_round:
                 now = time.time()
-                secs = round(now - last_time, 1)
-                last_time = now
+                secs = round(now - self.log_time, 1)
+                self.log_time = now
                 to_add = str(secs % 60).zfill(2)
                 if secs > 60:
                     mns = secs // 60
                     to_add = str(mns % 60).zfill(2) + ":" + to_add
                     if mns > 60:
                         to_add = str(mns // 60).zfill(2) + ":" + to_add
-                self.time_log[next_round] += to_add
-                next_round += 1
+                self.time_log[self.log_round] += to_add
+                self.log_round += 1
                 file = open(os.path.join(data_dir(), "log\\times.csv"), 'w')
                 file.write('\n'.join(self.time_log))
                 file.close()
@@ -541,14 +649,14 @@ class RatioFit:
         y = int(coords[1])
         return pyautogui.pixelMatchesColor(x, y, (100, 210, 0), tolerance=20)
 
-    def wait_to_upgrade(self, monkey_name, *path):
+    def TAS_upgrade(self, monkey_name, *path):
         # upgrade the specified monkey into the specified path
         # this function simply waits until you have enough money to do so
         log(": ")
-        position = self.convert_pos(self.monkey_place[monkey_name])
+        position = self.monkey_place[monkey_name]
         path = [int(p) for p in path]
         bring_to_front('BloonsTD6')
-        pyautogui.click(*position)  # select monkey
+        self.TAS_click(*position)  # select monkey
         if monkey_name == self.hero_name:
             if len(path) == 1:
                 path = path[0] * [1]
@@ -565,7 +673,7 @@ class RatioFit:
                     if self.ready_to_upgrade(p):
                         break
                 if self.check_edge_cases():
-                    pyautogui.click(*position)
+                    self.TAS_click(*position)
             time.sleep(self.delay)
             bring_to_front('BloonsTD6')
             hit_keys(self.upgrade_dict[p])
@@ -574,11 +682,11 @@ class RatioFit:
         bring_to_front('BloonsTD6')
         hit_key('escape')
 
-    def change_targeting(self, monkey_name, times, x_place=None, y_place=None):
+    def TAS_target(self, monkey_name, times, x_place=None, y_place=None):
+        # change the targeting of the specified tower
         times = int(times)
-        position = self.convert_pos(self.monkey_place[monkey_name])
         bring_to_front('BloonsTD6')
-        pyautogui.click(*position)  # select monkey
+        self.TAS_click(*self.monkey_place[monkey_name])  # select monkey
         time.sleep(0.15)
         for f in range(times):
             hit_key('tab')
@@ -587,23 +695,23 @@ class RatioFit:
             time.sleep(self.delay)
             if x_place is not None and y_place is not None:
                 if click_image(self.image_dict["edge cases locked"]):
-                    self.click(x_place, y_place)
+                    self.TAS_click(x_place, y_place)
         if self.monkey_type[monkey_name] == "mortar":
             if x_place is not None and y_place is not None:
-                self.click(x_place, y_place)
+                self.TAS_click(x_place, y_place)
         hit_key('escape')
 
-    def toggle_priority(self, monkey_name):
-        position = self.convert_pos(self.monkey_place[monkey_name])
+    def TAS_priority(self, monkey_name):
+        # toggle the priority of the specified tower
         bring_to_front('BloonsTD6')
-        pyautogui.click(*position)  # select monkey
+        self.TAS_click(*self.monkey_place[monkey_name])  # select monkey
         hit_key('page_down')
         hit_key('escape')
 
-    def sell_tower(self, monkey_name):
-        position = self.convert_pos(self.monkey_place[monkey_name])
+    def TAS_sell(self, monkey_name):
+        # sell the specified tower
         bring_to_front('BloonsTD6')
-        pyautogui.click(*position)  # select monkey
+        self.TAS_click(*self.monkey_place[monkey_name])  # select monkey
         hit_key('back')
 
     def select_hero(self, scale, inner=False):
@@ -626,7 +734,7 @@ class RatioFit:
                 self.wait_until_click(self.image_dict["heroes select"])
             hit_key('escape')
 
-    def open_track(self, track, difficulty, mode, hero=None):
+    def TAS_open(self, track, difficulty, mode, hero=None):
         # opens the specified track into the specified difficulty from the home screen
         # WILL overwrite saves
         self.cur_mode = (difficulty, mode)
@@ -723,34 +831,41 @@ class RatioFit:
             self.menu_halt = False
             raise MenuBackError("Go back to the menu")
         if not time_only:
-            # collect round 100 insta if present
-            click_image(self.image_dict["buttons insta-monkey"])
-            # check if we finished prematurely
-            if is_present(self.image_dict["buttons NEXT"]):
-                raise PremieError("Script succeeded prematurely")
-            # check if we've leveled up
-            if click_image(self.image_dict["edge cases LEVEL UP"]):
-                log("\nLevel up")
-                if shows_up(self.image_dict["edge cases monkey knowledge"], 10):
-                    click_image(self.image_dict["edge cases monkey knowledge"])
-                time.sleep(self.delay)
-                hit_keys('  ', 0.5)
-                return True
-            # then check for tas failure
-            if is_present(self.image_dict["edge cases restart"]):
-                if self.preferences["screenshot"]:
-                    self.wait_until_click(self.image_dict["edge cases review"])
-                    time.sleep(1)
-                    cur_time = time.strftime("%Y-%m-%d-%H-%M-%S")
-                    log("\nScreenshot taken "+cur_time)
-                    pyautogui.screenshot(os.path.join(data_dir(), "log", "screenshot "+cur_time+".png"))
-                    hit_key("escape")
-                self.cancel_repeat_keys()
-                self.wait_until_click(self.image_dict["buttons home"])
-                raise BloonsError("TAS Failed")
+            self.edge_case = (self.edge_case + 1) % 4
+            if self.edge_case == 0:
+                # collect round 100 insta if present
+                click_image(self.image_dict["buttons insta-monkey"])
+            if self.edge_case == 1:
+                # check if we finished prematurely
+                if is_present(self.image_dict["buttons NEXT"]):
+                    raise PremieError("Script succeeded prematurely")
+            if self.edge_case == 2:
+                # check if we've leveled up
+                if click_image(self.image_dict["edge cases LEVEL UP"]):
+                    log("\nLevel up")
+                    if shows_up(self.image_dict["edge cases monkey knowledge"], 10):
+                        click_image(self.image_dict["edge cases monkey knowledge"])
+                    time.sleep(self.delay)
+                    hit_keys('  ', 0.5)
+                    return True
+            if self.edge_case == 3:
+                # then check for tas failure
+                if is_present(self.image_dict["edge cases restart"]):
+                    self.kill_threads()
+                    if self.preferences["screenshot"]:
+                        self.wait_until_click(self.image_dict["edge cases review"])
+                        time.sleep(1)
+                        cur_time = time.strftime("%Y-%m-%d-%H-%M-%S")
+                        log("\nScreenshot taken "+cur_time)
+                        pyautogui.screenshot(os.path.join(data_dir(), "log", "screenshot "+cur_time+".png"))
+                        hit_key("escape")
+                    self.TAS_stop_all_abilities()
+                    self.wait_until_click(self.image_dict["buttons home"])
+                    raise BloonsError("TAS Failed")
         # then check for the game having crashed (1 hour since last command)
         if self.preferences["crash protection"] and self.preferences["steam path"]:
             if time.time() - self.command_time > 3600 or not window_is_open('BloonsTD6'):
+                self.kill_threads()
                 log("\nGame crashed ")
                 log(time.strftime("%m/%d/%Y, %H:%M:%S"))
                 self.command_time = time.time()
@@ -761,14 +876,14 @@ class RatioFit:
                 raise BloonsError("TAS Failed")
         return False
 
-    def wait_and_check_edges(self, secs):
+    def TAS_delay(self, secs):
         # function waits a given amount of time, and regularly check if you've leveled up
         secs = float(secs)
         start = time.time()
         while time.time() < start + secs:
             self.check_edge_cases()
 
-    def wait_for_lives(self, lives):
+    def TAS_lives(self, lives):
         # wait for amount of lives to drop to or below given number
         lives = float(lives)
         while 1:
@@ -777,7 +892,7 @@ class RatioFit:
                 break
             self.check_edge_cases()
 
-    def wait_for_cash(self, money):
+    def TAS_money(self, money):
         # wait for amount of cash to reach given number
         money = float(money)
         while 1:
@@ -787,7 +902,7 @@ class RatioFit:
                 break
             self.check_edge_cases()
 
-    def wait_for_round(self, round_num):
+    def TAS_round(self, round_num):
         # wait to reach given round
         round_num = float(round_num)
         while 1:
@@ -828,8 +943,8 @@ class RatioFit:
             except PremieError:
                 break
         time.sleep(self.delay)
+        self.kill_threads()
         self.wait_until_click(next_but)
-        self.cancel_repeat_keys()
         time.sleep(self.delay)
         home = self.image_dict["buttons home"]
         reward = self.image_dict["edge cases collect"]
@@ -851,28 +966,9 @@ class RatioFit:
             command = command[:command.index('#')]
         command = command.strip().lower()
         log('\n' + command)
-        # define and execute command types
-        opts = {"open": self.open_track,
-                "place": self.place,
-                "upgrade": self.wait_to_upgrade,
-                "delay": self.wait_and_check_edges,
-                "money": self.wait_for_cash,
-                "round": self.wait_for_round,
-                "lives": self.wait_for_lives,
-                "click": self.click,
-                "move": self.move_to,
-                "use ability": hit_key,
-                "repeat ability": self.add_repeat_key,
-                "stop ability": self.remove_repeat_key,
-                "stop all abilities": self.cancel_repeat_keys,
-                "target": self.change_targeting,
-                "priority": self.toggle_priority,
-                "sell": self.sell_tower,
-                "remove": self.remove_obstacle,
-                "change speed": lambda *x: hit_key(' '),
-                "start round": lambda *x: hit_keys('  ', self.delay)}
-        for prefix in opts:
-            if parse(command, prefix, opts[prefix]):
+        # execute command types
+        for prefix in self.command_dict:
+            if parse(command, prefix, self.command_dict[prefix]):
                 break
         else:
             log('\nUnknown command ' + command)
@@ -892,12 +988,11 @@ class RatioFit:
             self.do_command(parameters[0])  # should open the track
         if self.preferences["log times"]:
             # begin logging times if that option was selected
+            self.log_round = None
             for f in range(len(self.time_log)):
                 self.time_log[f] += ','
             self.time_log[0] += time.strftime("%m/%d/%Y %H:%M:%S")
-            self.round_logger = True
-            newt = threading.Thread(target=self.log_round_times, daemon=True)
-            newt.start()
+            self.threader.begin(self.log_round_times)
         self.do_command(parameters[1])  # should place the first tower
         if not (any("start round" in p for p in parameters) or "deflation" in parameters[0]):
             # if no start round command, start on our own
@@ -926,7 +1021,7 @@ class RatioFit:
                 self.rpc.update(pid=os.getpid(), details=self.egg_type+' mode', state="finding rewards",
                                 start=self.start_time, large_image="collection", large_text="collection",
                                 small_image="techbot", small_text="bot")
-            self.open_track("dark castle", "easy", "standard")
+            self.TAS_open("dark castle", "easy", "standard")
             self.play(self.egg_mode)
         except Exception as e:
             if type(e) != BloonsError:
@@ -936,14 +1031,17 @@ class RatioFit:
             self.in_egg = False
 
     def kill_threads(self):
-        self.cancel_repeat_keys()
-        self.round_logger = False
+        self.TAS_stop_all_abilities()
+        self.TAS_stop_repeat_move()
+        self.threader.end_all()
         # halt until the other threads die
-        time.sleep(2)
+        while self.threader.any_running():
+            pass
 
     def launch_bloons(self):
         if not bring_to_front('BloonsTD6'):
             os.system('"%s" steam://rungameid/960090' % self.preferences["steam path"])
+        time.sleep(7)
 
     def wait_and_static_click(self, image, threshold=4):
         # wait for an image to appear, then click when it is not moving

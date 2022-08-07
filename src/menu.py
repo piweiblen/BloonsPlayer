@@ -433,7 +433,7 @@ class ChooseOption:
     def go(self):
         self.mainloop = True
         self.pos_finder.menu_halt = False
-        if self.prefs['crash protection']:
+        if self.prefs['crash protection'] and not window_is_open('BloonsTD6'):
             self.launch()
         self.set_frame(1)
         newt = threading.Thread(target=self.run_bot, daemon=True)

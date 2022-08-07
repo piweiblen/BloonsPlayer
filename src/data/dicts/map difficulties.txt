@@ -19,6 +19,7 @@
 "hedge": "beginner",
 "end of the road": "beginner",
 "logs": "beginner",
+"quarry": "intermediate",
 "quiet street": "intermediate",
 "bloonarius prime": "intermediate",
 "balance": "intermediate",

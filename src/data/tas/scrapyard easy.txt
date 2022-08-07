@@ -1,0 +1,5 @@
+open scrapyard, easy, standard
+place engineer, (0.16712, 0.26757), engi
+upgrade engi, 1, 1, 1, 1
+place engineer, (0.16893, 0.08108), foam
+upgrade foam, 2, 2, 2, 3, 3

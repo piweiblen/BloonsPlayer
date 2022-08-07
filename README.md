@@ -269,13 +269,13 @@ target dartlingName, 0, (0.43, 0.33)  # change position of dartling gunner
 ```
 
 ### Activated abilities
-There are four commands regarding activating abilities. 
-The "use ability" command simply activates the given ability once. 
-The "repeat ability" command will repeat the given ability once every second until the round ends.
-The "stop ability" command cancels all currently repeated abilities.
-The "stop all abilities" command cancels all currently repeated abilities.
-The command will simply press the key it is given, 
-so this command can be used for keys other than abilities. 
+There are four commands regarding activating abilities.  
+The "use ability" command simply activates the given ability once.  
+The "repeat ability" command will repeat the given ability once every second until the round ends.  
+The "stop ability" command cancels all currently repeated abilities.  
+The "stop all abilities" command cancels all currently repeated abilities.  
+All of these command will simply press the key they are given, 
+so they can be used for keys other than abilities. 
 The default ability hotkeys are "1234567890-=".
 ```
 use ability 2  # use the second ability in the list
@@ -314,10 +314,17 @@ click (0.13, 0.37)  # click at (0.13, 0.37)
 ```
 
 ### Move
-The "move" command simply moves the mouse to the given relative coordinates.
-This can be used to collect money, or anything really.
+The "move" command simply moves the mouse to all given coordinates in the given timespan. 
+Note that the initial position of the mouse is only take into consideration if only one set of coordinates is given 
+If the timespan given is 0 the mouse will instantly jump to the given coordinates.  
+The "repeat move" command repeatedly performs the given move when the mouse is not otherwise in use
+The "stop repeat move command" ends the repetition of the movement
+This if most useful for collect money.
 ```
-move (0.13, 0.37)  # move to (0.13, 0.37)
+move 4, (0.13, 0.37), (0.46, 0.68)  # move from (0.13, 0.37) to (0.46, 0.68) over 4 seconds
+repeat move 4, (0.13, 0.37), (0.46, 0.68)  # move back and forth between (0.13, 0.37) and (0.46, 0.68) every 4 seconds
+delay 60  # wait a minute
+stop repeat move  # cancel the movement
 ```
 
 ### Changing speed
