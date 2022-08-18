@@ -1,0 +1,22 @@
+{
+"monkey meadow": "monkey meadow primary only sauda",
+"tree stump": "tree stump primary only sauda and bomb",
+"town center": "town center primary only sauda and bomb",
+"scrapyard": "scrapyard primary only sauda",
+"the cabin": "the cabin primary only sauda and bomb",
+"resort": "resort primary only sauda",
+"skates": "skates primary only sauda",
+"lotus island": "lotus island primary only sauda and bomb",
+"candy falls": "candy falls primary only sauda and bomb",
+"winter park": "winter park primary only sauda and bomb",
+"carved": "carved primary only sauda and bomb",
+"park path": "park path primary only sauda and bomb",
+"alpine run": "alpine run primary only sauda and bomb",
+"frozen over": "frozen over primary only sauda",
+"in the loop": "in the loop primary only sauda and bomb",
+"cubism": "cubism primary only sauda and bomb",
+"four circles": "four circles primary only sauda and bomb",
+"hedge": "hedge primary only sauda",
+"end of the road": "end of the road primary only sauda and bomb",
+"logs": "logs primary only sauda"
+}

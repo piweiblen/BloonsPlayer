@@ -1,0 +1,21 @@
+open park path, medium, standard
+place ninja, (0.64224, 0.34375), ninja1
+upgrade ninja1, 1, 1, 3, 3
+place ninja, (0.72591, 0.16597), ninja2
+upgrade ninja2, 1, 1, 3, 3
+upgrade ninja1, 3
+place ninja, (0.51487, 0.30833), ninja3
+upgrade ninja3, 1, 1, 3, 3, 3
+upgrade ninja1, 3
+place ninja, (0.60041, 0.25764), ninja4
+upgrade ninja4, 1, 1, 3, 3, 3
+place ninja, (0.45770, 0.31806), ninja5
+upgrade ninja5, 1, 1, 3, 3, 3
+place ninja, (0.60598, 0.31736), ninja6
+upgrade ninja6, 1, 1, 3, 3, 3
+place ninja, (0.52417, 0.20486), ninja7
+upgrade ninja7, 1, 1, 3, 3, 3
+upgrade ninja2, 1, 1
+upgrade ninja3, 3
+upgrade ninja5, 3
+upgrade ninja6, 3

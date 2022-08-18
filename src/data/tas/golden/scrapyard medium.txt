@@ -1,0 +1,21 @@
+open scrapyard, medium, standard
+place ninja, (0.15928, 0.17387), ninja1
+upgrade ninja1, 1, 1, 3, 3
+place ninja, (0.15989, 0.26306), ninja2
+upgrade ninja2, 1, 1, 3, 3
+upgrade ninja1, 3
+place ninja, (0.15989, 0.08108), ninja3
+upgrade ninja3, 1, 1, 3, 3, 3
+upgrade ninja1, 3
+upgrade ninja2, 3
+place ninja, (0.23105, 0.17477), ninja4
+upgrade ninja4, 2, 3, 3, 3
+place ninja, (0.07606, 0.08288), ninja5
+upgrade ninja5, 2, 3, 3, 3
+place ninja, (0.07727, 0.17207), ninja6
+upgrade ninja6, 2, 3, 3, 3
+place ninja, (0.07546, 0.26937), ninja7
+upgrade ninja7, 2, 3, 3, 3
+upgrade ninja2, 3
+upgrade ninja3, 3
+upgrade ninja4, 3

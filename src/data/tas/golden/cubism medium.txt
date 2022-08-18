@@ -1,0 +1,22 @@
+open cubism, medium, standard
+place ninja, (0.34614, 0.44931), ninja1
+upgrade ninja1, 1, 1, 3, 3
+place ninja, (0.09977, 0.36528), ninja2
+upgrade ninja2, 1, 1, 3, 3
+upgrade ninja1, 3
+place ninja, (0.31313, 0.51319), ninja3
+upgrade ninja3, 2, 3, 3, 3
+upgrade ninja1, 3
+place ninja, (0.41215, 0.48542), ninja4
+upgrade ninja4, 2, 3, 3, 3
+place ninja, (0.37310, 0.55903), ninja5
+upgrade ninja5, 2, 3, 3, 3
+place ninja, (0.26897, 0.48472), ninja6
+upgrade ninja6, 2, 3, 3, 3
+place ninja, (0.30012, 0.57361), ninja7
+upgrade ninja7, 2, 3, 3, 3
+upgrade ninja2, 1, 1
+upgrade ninja3, 3
+upgrade ninja5, 3
+upgrade ninja6, 3
+upgrade ninja4, 3

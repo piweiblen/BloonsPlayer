@@ -1,0 +1,21 @@
+open monkey meadow, medium, standard
+place ninja, (0.26662, 0.48468), ninja1
+upgrade ninja1, 1, 1, 3, 3
+place ninja, (0.38844, 0.48288), ninja2
+upgrade ninja2, 1, 1, 3, 3
+upgrade ninja1, 3
+place ninja, (0.38482, 0.35495), ninja3
+upgrade ninja3, 2, 3, 3, 3
+upgrade ninja1, 3
+upgrade ninja2, 3
+place ninja, (0.27446, 0.35405), ninja4
+upgrade ninja4, 2, 3, 3, 3
+place ninja, (0.45718, 0.49550), ninja5
+upgrade ninja5, 2, 3, 3, 3
+place ninja, (0.18341, 0.49550), ninja6
+upgrade ninja6, 2, 3, 3, 3
+place ninja, (0.19728, 0.35405), ninja7
+upgrade ninja7, 2, 3, 3, 3
+upgrade ninja2, 3
+upgrade ninja3, 3
+upgrade ninja4, 3

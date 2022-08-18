@@ -1,0 +1,4 @@
+open tree stump, easy, primary only, sauda
+place hero, (0.28773, 0.31441), sauda
+place bomb, (0.44754, 0.34505), recurse
+upgrade recurse, 1, 1, 3, 3, 3, 3

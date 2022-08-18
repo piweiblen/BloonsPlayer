@@ -1,0 +1,22 @@
+{
+  'golden': {
+    'difficulty': 'beginner',
+    'dict': 'golden'
+  },
+  'teams': {
+    'difficulty': 'beginner',
+    'dict': 'teams'
+  },
+  'easter': {
+    'difficulty': 'expert',
+    'dict': 'egg'
+  },
+  'patriot': {
+    'difficulty': 'expert',
+    'dict': 'egg'
+  },
+  'totem': {
+    'difficulty': 'expert',
+    'dict': 'egg'
+  }
+}

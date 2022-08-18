@@ -1,0 +1,13 @@
+open resort, medium, standard
+place ninja, (0.77860, 0.17838), ninja1
+upgrade ninja1, 1, 1, 3, 3
+place ninja, (0.81961, 0.17838), ninja2
+upgrade ninja2, 1, 1, 3, 3, 3
+place ninja, (0.77860, 0.23694), ninja3
+upgrade ninja3, 1, 1, 3, 3, 3
+place ninja, (0.81961, 0.23423), ninja4
+upgrade ninja4, 1, 1, 3, 3, 3
+upgrade ninja2, 3
+upgrade ninja1, 1, 1
+upgrade ninja3, 3
+upgrade ninja4, 3

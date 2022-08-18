@@ -1,0 +1,6 @@
+open hedge, easy, primary only, sauda
+place hero, (0.41256, 0.76667), sauda
+upgrade sauda, 4
+round 28
+repeat ability 1
+upgrade sauda, 2

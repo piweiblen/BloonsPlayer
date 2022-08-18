@@ -1,0 +1,21 @@
+open the cabin, medium, standard
+place ninja, (0.26180, 0.14324), ninja1
+upgrade ninja1, 1, 1, 3, 3
+place ninja, (0.33718, 0.06306), ninja2
+upgrade ninja2, 1, 1, 3, 3
+upgrade ninja1, 3
+place ninja, (0.39206, 0.15586), ninja3
+upgrade ninja3, 2, 3, 3, 3
+upgrade ninja1, 3
+upgrade ninja2, 3
+place ninja, (0.46804, 0.07568), ninja4
+upgrade ninja4, 2, 3, 3, 3
+place ninja, (0.55066, 0.13153), ninja5
+upgrade ninja5, 2, 3, 3, 3
+place ninja, (0.65136, 0.09820), ninja6
+upgrade ninja6, 2, 3, 3, 3
+place ninja, (0.69478, 0.26486), ninja7
+upgrade ninja7, 2, 3, 3, 3
+upgrade ninja2, 3
+upgrade ninja3, 3
+upgrade ninja4, 3

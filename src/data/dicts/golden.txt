@@ -1,0 +1,22 @@
+{
+"monkey meadow": "monkey meadow medium",
+"tree stump": "tree stump medium",
+"town center": "town center medium",
+"scrapyard": "scrapyard medium",
+"the cabin": "the cabin medium",
+"resort": "resort medium",
+"skates": "skates medium",
+"lotus island": "lotus island medium",
+"candy falls": "candy falls medium",
+"winter park": "winter park medium",
+"carved": "carved medium",
+"park path": "park path medium",
+"alpine run": "alpine run medium",
+"frozen over": "frozen over medium",
+"in the loop": "in the loop medium",
+"cubism": "cubism medium",
+"four circles": "four circles medium",
+"hedge": "hedge medium",
+"end of the road": "end of the road medium",
+"logs": "logs medium"
+}

@@ -35,7 +35,8 @@ class ChooseOption:
         if not self.prefs['steam path']:
             self.prefs['steam path'] = steam_path()
         self.filters = dict()
-        self.mainloop = False
+        self.threader = ThreadHandler()
+        self.egg_type = ""
         # create root
         self.root = tkinter.Tk()
         self.root.title(title)
@@ -128,9 +129,12 @@ class ChooseOption:
         self.create_single_select_menu(style_menu, self.styles.keys(), self.set_style, self.prefs['theme'])
         # event menu
         event_menu = tkinter.Menu(self.menu_bar, tearoff=0)
-        event_menu.add_command(label="Easter Bonus Hunt", command=lambda: self.egg_mode("easter bonus"))
-        event_menu.add_command(label="Patriot Bonus Hunt", command=lambda: self.egg_mode("patriot bonus"))
-        event_menu.add_command(label="Totem Bonus Hunt", command=lambda: self.egg_mode("totem bonus"))
+        event_menu.add_command(label="Easter Bonus Hunt", command=lambda: self.egg_mode("easter"))
+        event_menu.add_command(label="Patriot Bonus Hunt", command=lambda: self.egg_mode("patriot"))
+        event_menu.add_command(label="Totem Bonus Hunt", command=lambda: self.egg_mode("totem"))
+        event_menu.add_command(label="Golden Bloon Hunt", command=lambda: self.egg_mode("golden"))
+        event_menu.add_command(label="Monkey Teams Hunt", command=lambda: self.egg_mode("teams"))
+        event_menu.add_command(label="Golden & Teams Hunt", command=lambda: self.egg_mode(("golden", "teams")))
         # build menu bar structure
         self.menu_bar.add_cascade(label="File", menu=file_menu)
         self.menu_bar.add_cascade(label="Filter", menu=filter_menu)
@@ -218,13 +222,15 @@ class ChooseOption:
         self.options = []
         self.scripts = {}
         base_path = os.path.join(data_dir(), "tas")
-        for tas in os.listdir(base_path):
-            if not tas.endswith(".txt"):
-                continue
-            self.options.append(tas[:-4])
-            file = open(os.path.join(base_path, tas))
-            self.scripts[tas[:-4]] = tuple(file.read().split('\n'))
-            file.close()
+        for root, dirs, files in os.walk(base_path):
+            for tas in files:
+                if not tas.endswith(".txt"):
+                    continue
+                self.options.append(tas[:-4])
+                file = open(os.path.join(root, tas))
+                self.scripts[tas[:-4]] = tuple(file.read().split('\n'))
+                file.close()
+        self.pos_finder.scripts = self.scripts
         self.perform_filtering()
 
     def steam_prompt(self):
@@ -419,58 +425,72 @@ class ChooseOption:
             return False
         return mode == open_args[2]
 
-    def quit(self):
-        self.toggle_pos = False
-        self.mainloop = False
-        self.pos_finder.menu_halt = True
-        self.root.destroy()
-
-    def back_to_menu(self):
-        self.mainloop = False
-        self.pos_finder.menu_halt = True
-        self.set_frame(0)
-
-    def go(self):
-        self.mainloop = True
-        self.pos_finder.menu_halt = False
-        if self.prefs['crash protection'] and not window_is_open('BloonsTD6'):
-            self.launch()
-        self.set_frame(1)
-        newt = threading.Thread(target=self.run_bot, daemon=True)
-        newt.start()
-
-    def run_bot(self):
-        choices = [c for c in self.choices if c in self.scripts]
-        if self.pos_finder.egg_mode and not choices:
-            choices.append(list(self.scripts.keys())[0])
-        if not choices:
-            return None
-        while self.mainloop:
-            for name in choices:
-                choice = self.scripts[name]
-                try:
-                    self.pos_finder.script_name = name
-                    self.pos_finder.play(choice)
-                except Exception as e:
-                    if type(e) == MenuBackError:
-                        return None
-                    else:
-                        log('\n' + repr(e))
-                        if type(e) != BloonsError:
-                            raise
-                finally:
-                    self.pos_finder.kill_threads()
-
     def launch(self):
         if self.prefs['steam path']:
             self.pos_finder.launch_bloons()
         else:
             self.steam_prompt()
 
+    def quit(self):
+        self.toggle_pos = False
+        self.pos_finder.menu_halt = True
+        self.threader.end_all()
+        self.root.destroy()
+
+    def back_to_menu(self):
+        self.pos_finder.menu_halt = True
+        self.threader.end_all()
+        self.set_frame(0)
+
+    def run_bot(self):
+        for name in self.choices:
+            if name not in self.scripts:
+                continue
+            choice = self.scripts[name]
+            try:
+                self.pos_finder.script_name = name
+                self.pos_finder.play(choice)
+            except Exception as e:
+                if type(e) == MenuBackError:
+                    self.threader.end_all()
+                    return None
+                else:
+                    log('\n' + repr(e))
+                    if type(e) != BloonsError:
+                        self.threader.end_all()
+                        raise
+            finally:
+                self.pos_finder.kill_threads()
+
+    def go(self):
+        self.pos_finder.menu_halt = False
+        if not any(c in self.scripts for c in self.choices):
+            return None
+        if self.toggle_pos:
+            self.position_info()
+        if self.prefs['crash protection'] and not window_is_open('BloonsTD6'):
+            self.launch()
+        self.set_frame(1)
+        self.threader.begin(self.run_bot)
+
+    def egg_loop(self):
+        try:
+            self.pos_finder.run_egg_mode(self.egg_type)
+        except Exception as e:
+            if type(e) == MenuBackError:
+                self.threader.end_all()
+                return None
+            else:
+                log('\n' + repr(e))
+                if type(e) != BloonsError:
+                    self.threader.end_all()
+                    raise
+        finally:
+            self.pos_finder.kill_threads()
+
     def egg_mode(self, event):
-        self.pos_finder.egg_mode = True
-        self.pos_finder.egg_type = event
-        self.go()
+        self.egg_type = event
+        self.threader.begin(self.egg_loop)
 
     def display_pos(self):
         current = ""

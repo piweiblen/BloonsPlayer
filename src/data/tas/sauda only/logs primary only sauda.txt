@@ -1,0 +1,6 @@
+open logs, easy, primary only, sauda
+place hero, (0.37336, 0.65405), sauda
+upgrade sauda, 4
+round 28
+repeat ability 1
+upgrade sauda, 2

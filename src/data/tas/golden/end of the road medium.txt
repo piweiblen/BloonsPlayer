@@ -1,0 +1,22 @@
+open end of the road, medium, standard
+place ninja, (0.28199, 0.42153), ninja1
+upgrade ninja1, 1, 1, 3, 3
+place ninja, (0.09419, 0.39861), ninja2
+upgrade ninja2, 1, 1, 3, 3
+upgrade ninja1, 3
+place ninja, (0.23225, 0.42500), ninja3
+upgrade ninja3, 2, 3, 3, 3
+upgrade ninja1, 3
+place ninja, (0.33126, 0.42153), ninja4
+upgrade ninja4, 2, 3, 3, 3
+place ninja, (0.25735, 0.48056), ninja5
+upgrade ninja5, 2, 3, 3, 3
+place ninja, (0.31267, 0.47569), ninja6
+upgrade ninja6, 2, 3, 3, 3
+place ninja, (0.28152, 0.35486), ninja7
+upgrade ninja7, 2, 3, 3, 3
+upgrade ninja2, 1, 1
+upgrade ninja3, 3
+upgrade ninja5, 3
+upgrade ninja6, 3
+upgrade ninja4, 3

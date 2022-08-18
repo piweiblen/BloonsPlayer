@@ -1,0 +1,6 @@
+open frozen over, easy, primary only, sauda
+place hero, (0.32512, 0.61171), sauda
+upgrade sauda, 4
+round 28
+repeat ability 1
+upgrade sauda, 2

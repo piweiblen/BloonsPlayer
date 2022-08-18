@@ -1,0 +1,6 @@
+open skates, easy, primary only, sauda
+place hero, (0.44392, 0.68288), sauda
+upgrade sauda, 4
+round 28
+repeat ability 1
+upgrade sauda, 2

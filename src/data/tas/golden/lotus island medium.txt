@@ -1,0 +1,21 @@
+open lotus island, medium, standard
+place ninja, (0.79247, 0.84775), ninja1
+upgrade ninja1, 1, 1, 3, 3
+place ninja, (0.79790, 0.93423), ninja2
+upgrade ninja2, 1, 1, 3, 3
+upgrade ninja1, 3
+place ninja, (0.82262, 0.79910), ninja3
+upgrade ninja3, 2, 3, 3, 3
+upgrade ninja1, 3
+upgrade ninja2, 3
+place ninja, (0.80634, 0.73243), ninja4
+upgrade ninja4, 2, 3, 3, 3
+place ninja, (0.85760, 0.71441), ninja5
+upgrade ninja5, 2, 3, 3, 3
+place ninja, (0.77860, 0.67117), ninja6
+upgrade ninja6, 2, 3, 3, 3
+place ninja, (0.72071, 0.67027), ninja7
+upgrade ninja7, 2, 3, 3, 3
+upgrade ninja2, 3
+upgrade ninja3, 3
+upgrade ninja4, 3

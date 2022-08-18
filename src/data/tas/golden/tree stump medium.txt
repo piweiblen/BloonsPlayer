@@ -1,0 +1,21 @@
+open tree stump, medium, standard
+place ninja, (0.29376, 0.24955), ninja1
+upgrade ninja1, 1, 1, 3, 3
+place ninja, (0.30462, 0.33784), ninja2
+upgrade ninja2, 1, 1, 3, 3
+upgrade ninja1, 3
+place ninja, (0.42764, 0.34414), ninja3
+upgrade ninja3, 1, 1, 3, 3, 3
+upgrade ninja1, 3
+upgrade ninja2, 3
+place ninja, (0.27386, 0.12973), ninja4
+upgrade ninja4, 2, 3, 3, 3
+place ninja, (0.22079, 0.17928), ninja5
+upgrade ninja5, 2, 3, 3, 3
+place ninja, (0.24974, 0.31532), ninja6
+upgrade ninja6, 2, 3, 3, 3
+place ninja, (0.46020, 0.39279), ninja7
+upgrade ninja7, 2, 3, 3, 3
+upgrade ninja2, 3
+upgrade ninja3, 3
+upgrade ninja4, 3

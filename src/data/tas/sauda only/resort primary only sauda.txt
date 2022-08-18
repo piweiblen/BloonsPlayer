@@ -1,0 +1,6 @@
+open resort, easy, primary only, sauda
+place hero, (0.79669, 0.19910), sauda
+upgrade sauda, 4
+round 28
+repeat ability 1
+upgrade sauda, 2

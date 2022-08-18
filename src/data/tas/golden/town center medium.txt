@@ -1,0 +1,21 @@
+open town center, medium, standard
+place ninja, (0.41799, 0.45676), ninja1
+upgrade ninja1, 1, 1, 3, 3
+place ninja, (0.34261, 0.45586), ninja2
+upgrade ninja2, 1, 1, 3, 3
+upgrade ninja1, 3
+place ninja, (0.49879, 0.45495), ninja3
+upgrade ninja3, 2, 3, 3, 3
+upgrade ninja1, 3
+upgrade ninja2, 3
+place ninja, (0.38844, 0.30270), ninja4
+upgrade ninja4, 2, 3, 3, 3
+place ninja, (0.33115, 0.30270), ninja5
+upgrade ninja5, 2, 3, 3, 3
+place ninja, (0.41678, 0.37207), ninja6
+upgrade ninja6, 2, 3, 3, 3
+place ninja, (0.41557, 0.54324), ninja7
+upgrade ninja7, 2, 3, 3, 3
+upgrade ninja2, 3
+upgrade ninja3, 3
+upgrade ninja4, 3

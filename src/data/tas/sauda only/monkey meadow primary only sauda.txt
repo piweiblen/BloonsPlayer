@@ -1,0 +1,6 @@
+open monkey meadow, easy, primary only, sauda
+place hero, (0.27, 0.50), sauda
+upgrade sauda, 4
+round 28
+repeat ability 1
+upgrade sauda, 2
