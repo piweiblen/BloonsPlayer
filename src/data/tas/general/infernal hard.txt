@@ -1,0 +1,41 @@
+open infernal, hard, standard, quincy
+place hero, (0.49117, 0.65139), quincy
+place dart, (0.52789, 0.68611), dart
+round 6
+sell dart
+place ninja, (0.48187, 0.34514), ninja
+upgrade ninja, 1, 3, 1, 1, 3 # 302
+place boat, (0.30430, 0.75556), boat
+upgrade boat, 2, 2, 2, 1 # 130
+place alchemist, (0.52696, 0.32361), alch top
+upgrade alch top, 1, 1, 1 # 300
+upgrade boat, 2 # 140
+upgrade alch top, 3 # 301
+round 40
+change speed
+use ability 1
+use ability 2
+use ability 3
+change speed
+sell boat
+upgrade ninja, 1 # 402
+place alchemist, (0.30244, 0.19514), alch top2
+upgrade alch top2, 3, 1, 1, 1, 1 # 401
+place sniper, (0.27502, 0.25764), sniper top
+upgrade sniper top, 2, 2, 2, 2 # 040
+repeat move 3, (0.27502, 0.25764)
+upgrade sniper top, 1, 1 # 240
+repeat ability 1
+repeat ability 2
+repeat ability 3
+place alchemist, (0.52789, 0.68889), alch bottom
+upgrade alch bottom, 3, 1, 1, 1, 1 # 401
+upgrade sniper top, 2 # 250
+target sniper top, 1
+upgrade alch top, 1 # 401
+place sniper, (0.73196, 0.73750), sniper bottom
+target sniper bottom, 3
+upgrade sniper bottom, 2, 2, 1, 1, 1, 1 # 420
+place alchemist, (0.75892, 0.78403), alch bottom2
+upgrade alch bottom2, 3, 1, 1, 1, 1 # 401
+stop move

@@ -1,0 +1,57 @@
+open bloody puddles, hard, standard, quincy
+place sub, (0.39634, 0.62222), sub mid
+place sub, (0.72126, 0.18194), sub top
+place dart, (0.21133, 0.24931), dart1
+upgrade sub mid, 1, 1, 3 # 201
+round 15
+sell dart1
+upgrade sub mid, 3 # 202
+place dart, (0.21133, 0.24931), dart1
+place hero, (0.78123, 0.81667), quincy
+repeat ability 1
+repeat ability 2
+repeat ability 3
+place sniper, (0.51116, 0.21319), sniper top
+target sniper top, 3
+upgrade sniper top, 3 # 001
+round 22
+upgrade sniper top, 1 # 101
+upgrade dart1, 3, 3 # 002
+place alchemist, (0.41075, 0.70625), alch mid
+upgrade alch mid, 1, 1, 1, 3 # 301
+upgrade sub top, 1, 1, 3 #201
+upgrade sniper top, 3 # 102
+upgrade sub mid, 3, 3 # 204
+money 1000
+remove (0.55299, 0.64167)
+money 500
+remove (0.55299, 0.64167)
+upgrade alch mid, 1 #401
+place dart, (0.60180, 0.50208), dart mid
+upgrade dart mid, 3, 3 #002
+place sniper, (0.48094, 0.63889), sniper mid
+upgrade sniper mid, 1, 2, 2, 2, 1 # 230
+place farm, (0.95043, 0.69514), farm1
+upgrade farm1, 2, 2, 3, 3, 3
+upgrade sniper mid, 2 # 240
+repeat move 3, (0.1, 0.1), (0.9, 0.1), (0.1, 0.9), (0.9, 0.9)
+upgrade sniper top, 1, 1 # 302
+upgrade sub top, 3, 3 # 203
+place village, (0.41679, 0.53125), vil
+upgrade vil, 1, 1 # 200
+upgrade sniper top, 1 # 402
+round 62
+sell farm1
+upgrade sniper mid, 2 # 250
+target sniper mid, 2
+place dart, (0.76031, 0.24514), dart top right
+upgrade dart top right, 3, 3 # 002
+place sub, (0.35962, 0.55764), sub mid2
+upgrade sub mid2, 1, 1, 3, 3, 3, 3, 3 # 205
+place alchemist, (0.38240, 0.47083), alch mid2
+upgrade alch mid2, 3, 3, 1, 1, 1, 1 # 402
+place sub, (0.35729, 0.69028), sub mid3
+upgrade sub mid3, 1, 1, 3, 3, 3, 3 # 204
+place dart, (0.31499, 0.08194), dart3
+stop move
+stop ability 3

@@ -1,0 +1,60 @@
+open ouch, hard, standard, quincy
+repeat ability 1 # premature
+repeat ability 2 # premature
+place dart, (0.68454, 0.29653), dart top right
+place sub, (0.42609, 0.55694), sub a
+start round
+place dart, (0.68640, 0.62083), dart bottom right
+place hero, (0.32243, 0.50694), quincy
+upgrade sub a, 1, 1, 3 # 201
+place sniper, (0.32383, 0.40833), sniper
+delay 0.2
+target sniper, 3 # strong
+upgrade sub a, 3 # 202
+upgrade sniper, 1, 3, 3 # 102
+place sub, (0.43074, 0.49167), sub b
+upgrade sub b, 1, 1, 3, 3 # 202
+upgrade dart top right, 3, 3 # 002
+place alchemist, (0.40331, 0.61181), alch
+upgrade alch, 1, 1, 1 # 300
+upgrade dart top right, 3 # 003
+upgrade alch, 1, 3 # 401
+upgrade sub a, 3 # 203
+sell dart bottom right
+place dart, (0.40145, 0.12222), dart top left
+place dart, (0.68873, 0.71806), dart bottom right
+upgrade dart bottom right, 3, 3 # 002
+upgrade sub a, 3 # 204
+upgrade sub b, 3, 3 # 204
+place farm, (0.06351, 0.79722), farm a
+upgrade farm a, 2, 2, 3, 3, 3 # 023
+place farm, (0.17508, 0.80000), farm b
+upgrade farm b, 2, 2, 3, 3, 3 # 023
+place village, (0.30570, 0.59375), vil a
+upgrade vil a, 1, 1 # 200
+place village, (0.22294, 0.59861), vil b
+place boat, (0.47536, 0.53819), boat
+upgrade boat, 2, 2, 1, 1, 1, 1 # 420
+upgrade vil a, 2, 2 # 220
+round 62
+sell farm a
+sell farm b
+sell dart top right
+sell dart bottom right
+sell dart top left
+sell sniper
+sell sub a
+sell sub b
+upgrade boat, 1 # 520
+place ice, (0.32243, 0.39792), ice
+upgrade ice, 2, 2, 3, 3, 3 # 023
+target ice, 3
+round 65
+sell ice
+place sniper, (0.32383, 0.40833), sniper a
+upgrade sniper a, 2, 2, 3, 3, 3, 3
+place sniper, (0.42330, 0.45139), sniper b
+delay 0.2
+target sniper b, 3 # strong
+upgrade sniper b, 3, 3, 1, 1, 1, 1 # 402
+upgrade sniper a, 3 # 025

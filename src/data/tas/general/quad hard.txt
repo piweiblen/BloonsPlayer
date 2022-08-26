@@ -1,0 +1,59 @@
+open quad, hard, standard, quincy
+place dart, (0.50093, 0.25278), dart top
+place dart, (0.22993, 0.52222), dart left
+place dart, (0.77797, 0.52014), dart right
+start round
+repeat ability 1 # premature
+repeat ability 2 # premature
+place hero, (0.45630, 0.25347), quincy
+place dart, (0.49907, 0.77986), dart bottom
+place sub, (0.55067, 0.41528), sub
+upgrade sub, 1, 1, 3, 3 # 202
+place sniper, (0.47407, 0.31171), sniper
+target sniper, 3 # strong
+upgrade sniper, 3, 1 # 101
+upgrade sub, 3 # 203
+upgrade sniper, 3 # 102
+upgrade dart bottom, 3, 3 # 002
+place alchemist, (0.59622, 0.44236), alch mid
+upgrade alch mid, 1, 1, 1, 3 #301
+upgrade dart bottom, 2, 2, 3 # 023
+upgrade alch mid, 1 # 401
+upgrade dart left, 3, 3 # 002
+upgrade sniper, 1 # 202
+upgrade dart right, 3, 3 # 002
+upgrade sniper, 1 # 302
+place village, (0.42237, 0.37222), vil top left
+upgrade vil top left, 1, 1 # 200
+round 50
+change speed
+sell dart bottom
+place wizard, (0.53440, 0.79583), wizard
+upgrade wizard, 3, 3, 1, 1, 1 # 302
+change speed
+place alchemist, (0.49396, 0.77431), alch bottom
+upgrade alch bottom, 1, 1, 1, 3 # 301
+upgrade wizard, 1 # 402
+place bomb, (0.73567, 0.56181), bomb right
+upgrade bomb right, 3, 3, 3, 2, 2, 3 # 024
+place bomb, (0.27688, 0.45764), bomb left
+upgrade bomb left, 3, 3, 3, 2, 2, 3 # 024
+upgrade vil top left, 1 # 300
+upgrade alch bottom, 1 # 401
+place village, (0.62597, 0.66667), vil bottom right
+upgrade vil bottom right, 1, 1, 1 # 300
+upgrade sniper, 1 # 402
+place bomb, (0.70267, 0.51597), bomb2 right
+upgrade bomb2 right, 2, 2, 3, 3, 3, 3 # 024
+money 1500
+remove (0.93742, 0.49653) # right one
+money 1500
+remove (0.07746, 0.50694) # left one
+upgrade vil bottom right, 1, 2, 2 # 420
+money 1500
+remove (0.51162, 0.04653) # top
+money 1500
+remove (0.50186, 0.93056) # bottom
+place bomb, (0.32243, 0.41806), bomb2 left
+upgrade bomb2 left, 2, 2, 3, 3, 3, 3 # 024
+upgrade vil top left, 1, 2, 2 # 420

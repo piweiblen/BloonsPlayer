@@ -1,0 +1,50 @@
+{
+"shooty turret" : {
+    "price" : 250,
+    "type" : "tower"},
+"nails" : {
+    "price" : 50,
+    "type" : "hurdle"},
+"creepy idol" : {
+    "price" : 100,
+    "type" : "tower"},
+"pickles" : {
+    "price" : 100,
+    "type" : "buff"},
+"rare quincy" : {
+    "price" : 750,
+    "type" : "tower"},
+"invis potion" : {
+    "price" : 200,
+    "type" : "buff"},
+"glue" : {
+    "price" : 100,
+    "type" : "hurdle"},
+"sharpening stone" : {
+    "price" : 200,
+    "type" : "buff"},
+"worn cape" : {
+    "price" : 1500,
+    "type" : "buff"},
+"blade trap" : {
+    "price" : 650,
+    "type" : "hurdle"},
+"hot sauce" : {
+    "price" : 500,
+    "type" : "buff"},
+"fertilizer" : {
+    "price" : 300,
+    "type" : "buff"},
+"pet rabbit" : {
+    "price" : 1500,
+    "type" : "buff"},
+"rejuv potion" : {
+    "price" : 2000,
+    "type" : "effect"},
+"genie bottle" : {
+    "price" : 2000,
+    "type" : "tower"},
+"paragon" : {
+    "price" : 26000,
+    "type" : "tower"}
+}

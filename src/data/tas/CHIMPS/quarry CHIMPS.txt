@@ -1,0 +1,28 @@
+open quarry, hard, chimps
+place tack, (0.28555, 0.50926), tack1
+upgrade tack1, 1, 3
+start round
+upgrade tack1, 3, 1, 3
+place spikes, (0.42501, 0.79259), spac
+place village, (0.36055, 0.66667), village1
+upgrade village1, 1, 3, 3
+place alchemist, (0.21056, 0.67870), alch1
+upgrade alch1, 1, 1, 1
+upgrade spac, 3, 3
+target spac, 3
+upgrade spac, 3, 2, 2
+place alchemist, (0.36737, 0.80926), alch2
+upgrade alch2, 1, 1, 1, 2, 2
+upgrade alch1, 2, 2
+upgrade spac, 3
+upgrade tack1, 3
+upgrade village1, 1
+place ice, (0.32584, 0.50093), embr
+upgrade embr, 1, 1, 1, 1, 2, 2
+upgrade tack1, 3
+upgrade spac, 3
+upgrade alch1, 1
+upgrade alch2, 1
+upgrade village1, 1, 1
+upgrade embr, 1
+upgrade village1, 1

@@ -60,9 +60,6 @@ upgrade boomer2, 2, 2, 3, 3, 3, 3
 upgrade boomer3, 2, 2, 3, 3, 3, 3
 upgrade spac1, 3
 upgrade alch1, 1, 2, 2
-place boomerang, (0.73862, 0.17593), boomer4
-target boomer4, 3
-upgrade boomer4, 2, 2, 3, 3, 3, 3
 place mortar, (0.86320, 0.82315), mortar1
 upgrade mortar1, 3
 target mortar1, 1, (0.66982, 0.11019)

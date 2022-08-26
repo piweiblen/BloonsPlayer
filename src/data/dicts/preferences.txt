@@ -4,6 +4,7 @@
 'crash protection': False,
 'steam path': '',
 'rich presence': False,
+'ensure autostart': False,
 'theme': 'dark',
 'choices': [],
 'filters': {}

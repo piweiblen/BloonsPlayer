@@ -40,7 +40,7 @@ class ChooseOption:
         # create root
         self.root = tkinter.Tk()
         self.root.title(title)
-        self.root.iconbitmap(resource_path("images\\miscellaneous\\techbot.ico"))
+        self.root.iconbitmap(resource_path("images\\misc\\techbot.ico"))
         self.root.geometry("700x500")
         self.root.minsize(300, 200)
         self.root.protocol('WM_DELETE_WINDOW', self.quit)
@@ -88,10 +88,14 @@ class ChooseOption:
         self.launch_button.grid(row=10, column=0, padx=5, pady=5)
 
         # create menu bars
-        self.screen_shot = tkinter.BooleanVar(self.root, self.prefs['screenshot'])
-        self.log_times = tkinter.BooleanVar(self.root, self.prefs['log times'])
-        self.crash_p = tkinter.BooleanVar(self.root, self.prefs['crash protection'])
-        self.rpc_bool = tkinter.BooleanVar(self.root, self.prefs['rich presence'])
+        self.toggleable_prefs = {'screenshot': "Take Screenshot On Failure",
+                                 'log times': "Log Round Times",
+                                 'crash protection': "Restart Game On Crash",
+                                 'rich presence': "Discord Rich Presence",
+                                 'ensure autostart': "Ensure Autostart"}
+        self.toggleable_pref_bools = {}
+        for pref in self.toggleable_prefs:
+            self.toggleable_pref_bools[pref] = tkinter.BooleanVar(self.root, self.prefs[pref])
         self.menu_bar = tkinter.Menu(self.root)
         # file menu
         file_menu = tkinter.Menu(self.menu_bar, tearoff=0)
@@ -113,14 +117,9 @@ class ChooseOption:
         filter_menu.add_command(label="Reset All", command=self.clear_all_filters)
         # options menu
         option_menu = tkinter.Menu(self.menu_bar, tearoff=0)
-        option_menu.add_checkbutton(label="Take Screenshot On Failure", onvalue=1, offvalue=0,
-                                    variable=self.screen_shot, command=self.update_prefs)
-        option_menu.add_checkbutton(label="Log Round Times", onvalue=1, offvalue=0,
-                                    variable=self.log_times, command=self.update_prefs)
-        option_menu.add_checkbutton(label="Restart Game On Crash", onvalue=1, offvalue=0,
-                                    variable=self.crash_p, command=self.crash_p_toggle)
-        option_menu.add_checkbutton(label="Discord Rich Presence", onvalue=1, offvalue=0,
-                                    variable=self.rpc_bool, command=self.rpc_toggle)
+        for pref in self.toggleable_prefs:
+            option_menu.add_checkbutton(label=self.toggleable_prefs[pref], onvalue=1, offvalue=0,
+                                        variable=self.toggleable_pref_bools[pref], command=self.update_prefs)
         # style menu
         style_menu = tkinter.Menu(self.menu_bar, tearoff=0)
         self.styles = {"light": ("#f0f0f0", "#ffffff", "#000000", "#0078d7"),
@@ -230,6 +229,7 @@ class ChooseOption:
                 file = open(os.path.join(root, tas))
                 self.scripts[tas[:-4]] = tuple(file.read().split('\n'))
                 file.close()
+        self.options.sort()
         self.pos_finder.scripts = self.scripts
         self.perform_filtering()
 
@@ -245,25 +245,24 @@ class ChooseOption:
         self.prefs['steam path'] = steam_path()
         self.steam_prompt()
 
-    def crash_p_toggle(self):
-        if self.crash_p.get():
-            if not self.prefs['steam path']:
-                self.steam_prompt()
-                self.crash_p.set(bool(self.prefs['steam path']))
-        self.update_prefs()
-
     def rpc_toggle(self):
         self.update_prefs()
-        if self.rpc_bool.get():
+        if self.toggleable_pref_bools['rich presence'].get():
             try:
                 import pypresence
             except ImportError:
                 print("pypresence failed to import")
+                self.pos_finder.rpc = None
                 return None
-            self.pos_finder.rpc = pypresence.Presence("1003858417506598972")
-            self.pos_finder.rpc.connect()
-            self.pos_finder.rpc.update(pid=os.getpid(), details="Browsing menu", large_image="techbot",
-                                       large_text="bot", small_image="menu", small_text="menu")
+            try:
+                self.pos_finder.rpc = pypresence.Presence("1003858417506598972")
+                self.pos_finder.rpc.connect()
+                self.pos_finder.rpc.update(pid=os.getpid(), details="Browsing menu", large_image="techbot",
+                                           large_text="bot", small_image="menu", small_text="menu")
+            except pypresence.exceptions.DiscordNotFound:
+                print("discord not found, rich presence connection failed")
+                self.pos_finder.rpc = None
+                return None
         else:
             if self.pos_finder.rpc is not None:
                 self.pos_finder.rpc.clear(pid=os.getpid())
@@ -271,10 +270,16 @@ class ChooseOption:
             self.pos_finder.rpc = None
 
     def update_prefs(self):
-        self.prefs['screenshot'] = self.screen_shot.get()
-        self.prefs['log times'] = self.log_times.get()
-        self.prefs['crash protection'] = self.crash_p.get()
-        self.prefs['rich presence'] = self.rpc_bool.get()
+        crash_p = self.toggleable_pref_bools['crash protection']
+        if crash_p.get() and not self.prefs['crash protection']:
+            if not self.prefs['steam path']:
+                self.steam_prompt()
+                crash_p.set(bool(self.prefs['steam path']))
+        rpc = self.toggleable_pref_bools['rich presence']
+        if rpc.get() != self.prefs['rich presence']:
+            self.rpc_toggle()
+        for pref in self.toggleable_prefs:
+            self.prefs[pref] = self.toggleable_pref_bools[pref].get()
         self.prefs['choices'] = self.choices
         save_dict('preferences', self.prefs)
         self.pos_finder.update_prefs()

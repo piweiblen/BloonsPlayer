@@ -1,0 +1,54 @@
+open muddy puddles, hard, standard, quincy
+place hero, (0.71848, 0.51319), quincy
+repeat ability 1 # premature
+repeat ability 2 # premature
+place sniper, (0.14393, 0.30625), sniper
+target sniper, 3
+place sub, (0.46328, 0.54444), sub a
+place dart, (0.27083, 0.47083), dart left
+upgrade sub a, 1, 1 # 200
+sell dart left
+upgrade sub a, 3 #201
+place dart, (0.49163, 0.26875), dart top
+upgrade dart top, 3 # 001
+place dart, (0.80865, 0.34792), dart right top
+upgrade sub a, 3 # 202
+place dart, (0.19692, 0.64097), dart left
+upgrade dart right top, 3 # 001
+upgrade dart top, 3 # 002
+upgrade sub a, 3 # 203
+upgrade sniper, 1, 3 # 101
+place alchemist, (0.51813, 0.69514), alch
+upgrade alch, 1, 1, 1, 3 # 301
+place sub, (0.42, 0.58), sub b
+upgrade sub b, 1, 1, 3 # 201
+upgrade dart left, 3, 3 # 002
+upgrade alch, 1 # 401
+upgrade sub b, 3 # 202
+upgrade dart right top, 3 # 002
+upgrade sub b, 3 # 203
+upgrade sub a, 3 # 204
+place village, (0.52836, 0.52986), vil
+upgrade vil, 1, 1 # 200
+upgrade dart left, 3 # 003
+upgrade sub b, 3 # 204
+upgrade dart left, 2, 2 # 023
+upgrade vil, 2, 2 # 220
+place farm, (0.94950, 0.92569), farm a
+place farm, (0.94718, 0.79306), farm b
+upgrade farm a, 2, 2
+upgrade farm b, 2, 2, 3, 3, 3
+upgrade farm a, 3, 3, 3
+round 62
+sell farm b
+upgrade sub a, 3 # 205
+upgrade dart top, 3 # 003
+upgrade dart right top, 3 # 003
+place sub, (0.49628, 0.59653), sub c
+upgrade sub c, 1, 1, 3, 3, 3, 3 # 204
+upgrade sniper, 3, 1, 1, 1 # 402
+upgrade dart top, 2, 2, 3 # 024
+upgrade dart left, 3 # 204
+place sub, (0.45445, 0.63194), sub d
+upgrade sub d, 1, 1, 3, 3, 3, 3 # 204
+place dart, (0.39727, 0.11319), dart

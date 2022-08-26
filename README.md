@@ -75,6 +75,7 @@ See also the tas directory for more examples.
 * [open](#first-command-opening-the-track)
 * [place](#placing-a-tower)
 * [upgrade](#upgrades)
+* [geraldo's shop](#geraldos-shop)
 * [delays](#delays)
 * [ability](#activated-abilities)
 * [target](#changing-targeting)
@@ -85,6 +86,7 @@ See also the tas directory for more examples.
 * [move](#move)
 * [change speed](#changing-speed)
 * [start round](#start-round)
+* [toggle autostart](#toggle-autostart)
 
 ### First command, opening the track
 The first command should be the "open" command and should follow the following format.
@@ -255,6 +257,39 @@ place spikes, (0.43, 0.33), first spikes
 upgrade first spikes, 2, 2, 1, 1, 1, 1  # upgrade our spike factory to spiked mines with even faster production
 ```
 
+
+### Geraldo's Shop
+The "gerry shop" command allows the bot to purchase items from Geraldo's shop. 
+This will automatically wait for sufficient funds unless a "no delay" argument is specified. 
+The other arguments are as follows.  
+In the case of items that are towers, one should specify a position and a name.  
+In the case of items that are buffs, one should specify the name of the tower to apply it to.  
+In the case of items that are track objects, one should specify a position. 
+```
+gerry shop hot sauce geraldo
+gerry shop glue, (0.67, 0.32)
+gerry shop shooty turret, (0.33, 0.70), turret1
+gerry shop rejuv potion, no delay
+```
+The valid items and their type are:
+* "shooty turret" : tower
+* "nails" : hurdle
+* "creepy idol" : tower
+* "pickles" : buff
+* "rare quincy" : tower
+* "invis potion" : buff
+* "glue" : hurdle
+* "sharpening stone" : buff
+* "worn cape" : buff
+* "blade trap" : hurdle
+* "hot sauce" : buff
+* "fertilizer" : buff
+* "pet rabbit" : buff
+* "rejuv potion" : effect
+* "genie bottle" : tower
+* "paragon" : tower
+
+
 ### Changing targeting
 The "target" command changes the targeting of the given tower. 
 The first argument should be the name of the tower to change.
@@ -318,13 +353,13 @@ The "move" command simply moves the mouse to all given coordinates in the given 
 Note that the initial position of the mouse is only take into consideration if only one set of coordinates is given 
 If the timespan given is 0 the mouse will instantly jump to the given coordinates.  
 The "repeat move" command repeatedly performs the given move when the mouse is not otherwise in use
-The "stop repeat move command" ends the repetition of the movement
-This if most useful for collect money.
+The "stop move" command ends any currently repeating movement.
+This is most useful for money collection.
 ```
 move 4, (0.13, 0.37), (0.46, 0.68)  # move from (0.13, 0.37) to (0.46, 0.68) over 4 seconds
 repeat move 4, (0.13, 0.37), (0.46, 0.68)  # move back and forth between (0.13, 0.37) and (0.46, 0.68) every 4 seconds
 delay 60  # wait a minute
-stop repeat move  # cancel the movement
+stop move  # cancel the movement
 ```
 
 ### Changing speed
@@ -338,4 +373,18 @@ The "start round" command allows you to have multiple commands occur before the 
 If not used, the program will handle starting on its own.
 ```
 start round
+```
+
+### Toggle autostart
+The "toggle autostart" command allows you to toggle autostart in the menu. 
+This can be useful when many commands need to be executed in a tight time frame
+```
+round 62
+toggle autostart  # make sure the following execute before round 63
+place dart, (0.5, 0.9), dart1
+place dart, (0.5, 0.8), dart2
+place dart, (0.5, 0.7), dart3
+place dart, (0.5, 0.6), dart4
+toggle autostart
+change speed  # start back up again
 ```

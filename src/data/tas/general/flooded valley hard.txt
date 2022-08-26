@@ -1,0 +1,43 @@
+open flooded valley, hard, standard, obyn
+place sub, (0.60227, 0.70556), sub1
+place sub, (0.55718, 0.145), sub2
+upgrade sub1, 3, 3, 1, 1
+place boat, (0.67246, 0.38194), b1
+upgrade b1, 2, 3, 3, 2, 2
+upgrade sub1, 3
+upgrade sub2, 3, 3, 1, 1
+target b1, 3 # strong
+upgrade b1, 2
+round 40
+use ability 1
+place hero, (0.39588, 0.31111), obyn
+place wizard, (0.44887, 0.39653), w1
+upgrade w1, 1, 1, 1, 3, 3
+round 46
+sell b1
+upgrade w1, 1
+upgrade sub1, 3
+place alchemist, (0.41586, 0.438), alch
+upgrade alch, 1, 1, 1, 3, 1
+place village, (0.37542, 0.23472), vil
+upgrade vil, 1, 1
+upgrade sub2, 3, 3
+place wizard, (0.37496, 0.15208), w2
+upgrade w2, 1, 1, 3, 3, 3, 3
+place sniper, (0.28245, 0.12569), s1
+upgrade s1, 1, 1, 2, 2, 2
+round 63
+use ability 2
+upgrade s1, 2
+repeat ability 3
+repeat move 3, (0.28245, 0.12569)
+upgrade s1, 2
+target s1, 1
+place sniper, (0.11837, 0.08958), s2
+target s2, 3 # strong
+upgrade s2, 1, 1, 1, 1, 3, 3
+sell sub2
+place alchemist, (0.33219, 0.13125), alch2
+upgrade alch2, 1, 1, 1, 1, 3
+stop move
+stop ability 3
