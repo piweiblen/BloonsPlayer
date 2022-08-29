@@ -40,7 +40,7 @@ def bring_to_front(window_name):
 def window_is_open(window_name):
     hwnds = []
     def windowEnumerationHandler(hwnd, lparam):
-        hwnds.append(hwnd)
+        hwnds.append(hwnd & 0x00000000FFFFFFFF)
         return True
     func = WNDENUMPROC(windowEnumerationHandler)
     _enum_windows(func, 0)
@@ -463,13 +463,16 @@ class RatioFit:
         while not click_image(image):
             self.check_edge_cases(time_only=True)
 
-    def TAS_move(self, duration, *args, is_rep=False):
-        if not is_rep:
-            self.pause_mouse = False
+    def TAS_move(self, duration, *args):
+        # move the cursor to the specified location(s) over the specified duration
+        # backwards compatibility for no duration specified
+        if len(args) == 1:
+            args = (duration,) + args
+            duration = 0
         duration = float(duration)
         positions = []
         fps = 60
-        for f in range(0, len(args), 2):
+        for f in range(0, len(args)-1, 2):
             positions.append(numpy.array(self.convert_pos((float(args[f]), float(args[f+1])))))
         total_dist = 0
         if len(positions) == 0:  # no positions
@@ -494,7 +497,7 @@ class RatioFit:
                 time.sleep(1 / fps)
 
     def move_rep(self):
-        self.TAS_move(*self.move_args, is_rep=True)
+        self.TAS_move(*self.move_args)
 
     def TAS_repeat_move(self, duration, *args):
         self.pause_mouse = False
@@ -675,7 +678,7 @@ class RatioFit:
         else:
             nums = self.get_numbers()
             if len(nums) > 2 and nums[2] not in (self.log_round, self.log_round-1):
-                log(f"Erroneous round read {nums[2]} last valid round {self.log_round-1}")
+                log(f"Erroneous round read {nums} last valid round {self.log_round-1}")
             if len(nums) > 2 and nums[2] == self.log_round:
                 now = time.time()
                 secs = round(now - self.log_time, 1)
@@ -710,10 +713,10 @@ class RatioFit:
         if self.cur_hero in "geraldo":
             self.click_image("gerry shop close")
         green = self.image_dict["buttons hero upgrade"]
-        spot = pyautogui.locateOnScreen(green, confidence=0.9)
-        if spot is None:
+        spots = [spot for spot in pyautogui.locateAllOnScreen(green, confidence=0.9) if self.revert_pos(spot)[1] > 0.5]
+        if not spots:
             return False
-        coords = pyautogui.center(spot)
+        coords = pyautogui.center(spots[0])
         x = int(coords[0])
         y = int(coords[1])
         return pyautogui.pixelMatchesColor(x, y, (100, 210, 0), tolerance=20)
