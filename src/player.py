@@ -951,7 +951,8 @@ class RatioFit:
                 os.system("TASKKILL /F /IM bloonstd6.exe")
                 time.sleep(10)
                 self.launch_bloons()
-                self.wait_until_click(self.image_dict["edge cases start"])
+                while not click_image(self.image_dict["edge cases start"]):
+                    pass
                 raise BloonsError("TAS Failed")
         return False
 
