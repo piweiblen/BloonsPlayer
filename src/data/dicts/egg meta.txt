@@ -15,6 +15,10 @@
     'difficulty': 'expert',
     'dict': 'egg'
   },
+  'pumpkin': {
+    'difficulty': 'expert',
+    'dict': 'egg'
+  },
   'totem': {
     'difficulty': 'expert',
     'dict': 'egg'

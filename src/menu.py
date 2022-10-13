@@ -130,6 +130,7 @@ class ChooseOption:
         event_menu = tkinter.Menu(self.menu_bar, tearoff=0)
         event_menu.add_command(label="Easter Bonus Hunt", command=lambda: self.egg_mode("easter"))
         event_menu.add_command(label="Patriot Bonus Hunt", command=lambda: self.egg_mode("patriot"))
+        event_menu.add_command(label="Pumpkin Bonus Hunt", command=lambda: self.egg_mode("pumpkin"))
         event_menu.add_command(label="Totem Bonus Hunt", command=lambda: self.egg_mode("totem"))
         event_menu.add_command(label="Golden Bloon Hunt", command=lambda: self.egg_mode("golden"))
         event_menu.add_command(label="Monkey Teams Hunt", command=lambda: self.egg_mode("teams"))
@@ -495,6 +496,7 @@ class ChooseOption:
 
     def egg_mode(self, event):
         self.egg_type = event
+        self.set_frame(1)
         self.threader.begin(self.egg_loop)
 
     def display_pos(self):
