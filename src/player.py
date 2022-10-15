@@ -994,27 +994,23 @@ class RatioFit:
             self.check_edge_cases()
 
     def collect_reward(self):
+        # collect event rewards if they are present
         reward = self.image_dict["edge cases collect"]
         if is_present(reward):
             log('collecting rewards')
-            instas = self.image_dict["edge cases insta monkey"]
-            insta_g = self.image_dict["edge cases insta monkey green"]
-            insta_b = self.image_dict["edge cases insta monkey blue"]
-            insta_p = self.image_dict["edge cases insta monkey purple"]
-            insta_y = self.image_dict["edge cases insta monkey yellow"]
+            insta_monkey = self.image_dict["buttons insta-monkey"]
+            insta_colors = [self.image_dict["edge cases insta monkey white"],
+                            self.image_dict["edge cases insta monkey green"],
+                            self.image_dict["edge cases insta monkey blue"],
+                            self.image_dict["edge cases insta monkey purple"],
+                            self.image_dict["edge cases insta monkey yellow"]]
             cont = self.image_dict["edge cases cont"]
             back = self.image_dict["edge cases back"]
             self.wait_until_click(reward)
-            while not is_present(cont):
-                if not any(click_image(f) for f in [reward, instas, insta_g, insta_b, insta_p, insta_y]):
+            while not click_image(back):
+                if not any(click_image(f) for f in [cont, reward, insta_monkey] + insta_colors):
                     self.check_edge_cases(time_only=True)
                     time.sleep(1)
-                    pyautogui.click(*self.convert_pos((0.5, 0.5)))
-                    if click_image(back):
-                        break
-            if click_image(cont):
-                time.sleep(1)
-            hit_key('escape')
 
     def wait_to_finish(self):
         # waits for the round to finish, then goes to the home screen
