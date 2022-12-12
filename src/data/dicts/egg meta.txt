@@ -22,5 +22,9 @@
   'totem': {
     'difficulty': 'expert',
     'dict': 'egg'
+  },
+  'xmas': {
+    'difficulty': 'expert',
+    'dict': 'egg'
   }
 }

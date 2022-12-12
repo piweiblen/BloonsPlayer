@@ -132,6 +132,7 @@ class ChooseOption:
         event_menu.add_command(label="Patriot Bonus Hunt", command=lambda: self.egg_mode("patriot"))
         event_menu.add_command(label="Pumpkin Bonus Hunt", command=lambda: self.egg_mode("pumpkin"))
         event_menu.add_command(label="Totem Bonus Hunt", command=lambda: self.egg_mode("totem"))
+        event_menu.add_command(label="Xmas Bonus Hunt", command=lambda: self.egg_mode("xmas"))
         event_menu.add_command(label="Golden Bloon Hunt", command=lambda: self.egg_mode("golden"))
         event_menu.add_command(label="Monkey Teams Hunt", command=lambda: self.egg_mode("teams"))
         event_menu.add_command(label="Golden & Teams Hunt", command=lambda: self.egg_mode(("golden", "teams")))

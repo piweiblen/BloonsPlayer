@@ -2,6 +2,7 @@
 "monkey meadow": "beginner",
 "tree stump": "beginner",
 "town center": "beginner",
+"one two tree": "beginner",
 "scrapyard": "beginner",
 "the cabin": "beginner",
 "resort": "beginner",
