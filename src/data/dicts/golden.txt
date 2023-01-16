@@ -2,6 +2,7 @@
 "monkey meadow": "monkey meadow medium",
 "tree stump": "tree stump medium",
 "town center": "town center medium",
+"one two tree": "one two tree medium",
 "scrapyard": "scrapyard medium",
 "the cabin": "the cabin medium",
 "resort": "resort medium",

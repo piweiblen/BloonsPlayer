@@ -1,10 +1,10 @@
 {
 'sanctuary': 'sanctuary easy',
-'ravine': 'ravine hard',
+'ravine': 'ravine easy',
 'flooded valley': 'flooded valley hard',
 'infernal': 'infernal hard',
 'bloody puddles': 'bloody puddles easy',
-'workshop': 'workshop CHIMPS (sauda)',
+'workshop': 'workshop hard',
 'quad': 'quad hard',
 'dark castle': 'dark castle CHIMPS (obyn)',
 'muddy puddles': 'muddy puddles hard',

@@ -1,0 +1,22 @@
+open one two tree, medium, standard
+place ninja, (0.11225, 0.72432), ninja1
+upgrade ninja1, 1, 1, 3, 3
+round 19
+place ninja, (0.40593, 0.30180), ninja2
+upgrade ninja2, 1, 1, 3, 3
+upgrade ninja1, 3
+place ninja, (0.28291, 0.67748), ninja3
+upgrade ninja3, 2, 3, 3, 3
+upgrade ninja1, 3
+upgrade ninja2, 3
+place ninja, (0.44452, 0.34865), ninja4
+upgrade ninja4, 2, 3, 3, 3
+place ninja, (0.55910, 0.37207), ninja5
+upgrade ninja5, 2, 3, 3, 3
+place ninja, (0.59528, 0.41892), ninja6
+upgrade ninja6, 2, 3, 3, 3
+place ninja, (0.15325, 0.78018), ninja7
+upgrade ninja7, 2, 3, 3, 3
+upgrade ninja2, 3
+upgrade ninja3, 3
+upgrade ninja4, 3

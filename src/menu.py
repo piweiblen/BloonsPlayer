@@ -248,7 +248,6 @@ class ChooseOption:
         self.steam_prompt()
 
     def rpc_toggle(self):
-        self.update_prefs()
         if self.toggleable_pref_bools['rich presence'].get():
             try:
                 import pypresence

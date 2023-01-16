@@ -936,6 +936,7 @@ class RatioFit:
                         time.sleep(1)
                         cur_time = time.strftime("%Y-%m-%d-%H-%M-%S")
                         log("Screenshot taken "+cur_time)
+                        log("Numbers read "+repr(self.get_numbers()))
                         pyautogui.screenshot(os.path.join(data_dir(), "log", "screenshot "+cur_time+".png"))
                         hit_key("escape")
                     self.TAS_stop_all_abilities()
