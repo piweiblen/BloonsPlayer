@@ -1,4 +1,5 @@
 {
+"dark dungeons": 'dark dungeons easy',
 'sanctuary': 'sanctuary easy',
 'ravine': 'ravine easy',
 'flooded valley': 'flooded valley hard',
