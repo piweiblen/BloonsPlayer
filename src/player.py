@@ -1082,6 +1082,7 @@ class RatioFit:
                 time.sleep(self.delay)
             except PremieError:
                 log('Track finished prematurely')
+                break
         log('Waiting for track to finish, ', end='')
         log(time.strftime("%m/%d/%Y, %H:%M:%S"))
         if self.rpc is not None:
