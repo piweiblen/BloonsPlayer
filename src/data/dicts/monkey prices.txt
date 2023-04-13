@@ -21,6 +21,7 @@
 "spikes": 1000,
 "village": 1200,
 "engineer": 400,
+"handler": 250,
 "admiral brickell": 750,
 "adora": 1000,
 "benjamin": 1200,

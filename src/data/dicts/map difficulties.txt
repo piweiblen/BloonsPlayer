@@ -21,6 +21,7 @@
 "hedge": "beginner",
 "end of the road": "beginner",
 "logs": "beginner",
+"polyphemus": "intermediate",
 "covered garden": "intermediate",
 "quarry": "intermediate",
 "quiet street": "intermediate",

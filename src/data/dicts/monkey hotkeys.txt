@@ -21,5 +21,6 @@
 "farm": "h",
 "spikes": "j",
 "village": "k",
-"engineer": "l"
+"engineer": "l",
+"handler": "i"
 }
