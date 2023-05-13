@@ -107,7 +107,7 @@ class ChooseOption:
         filter_menu = tkinter.Menu(self.menu_bar, tearoff=0)
         self.filter_bools = {}
         self.create_filter_menu(filter_menu, "Map Difficulty",
-                                ["beginner", "intermediate", "advanced", "expert"], self.is_difficulty)
+                                ["beginner", "intermediate", "advanced", "expert", "race"], self.is_difficulty)
         self.create_filter_menu(filter_menu, "Map Name",
                                 [m for m in self.difficulties], self.is_map)
         self.create_filter_menu(filter_menu, "Game Difficulty",

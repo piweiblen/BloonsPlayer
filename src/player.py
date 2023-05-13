@@ -316,8 +316,7 @@ class RatioFit:
         self.threader = ThreadHandler()
         self.scripts = {}
         self.command_dict = {"use ability": hit_key,
-                             "change speed": lambda *x: hit_key(' '),
-                             "start round": lambda *x: hit_keys('  ', self.delay)}
+                             "change speed": lambda *x: hit_key(' ')}
         prefix = "TAS_"
         for func in dir(self):
             if func.startswith(prefix):
@@ -457,6 +456,7 @@ class RatioFit:
                 pyautogui.click(*location)
                 return True
             else:
+                movemouse(10, 10)
                 return False
 
     def wait_until_click(self, image):
@@ -625,6 +625,19 @@ class RatioFit:
         else:
             log("toggle autostart failed")
         hit_key('escape')
+
+    def TAS_start_round(self, *args):
+        fast = True
+        if args and args[0] == "slow":
+            fast = False
+        hit_key(' ')
+        if fast:
+            time.sleep(self.delay)
+            hit_key(' ')
+
+    def TAS_send_rounds(self, num):
+        for f in range(int(num)):
+            self.click_fixed("buttons round advance")
 
     def get_numbers(self):
         # return the amount of cash the player has as an integer
@@ -846,11 +859,30 @@ class RatioFit:
                 self.script_name = egg_dicts[f][best_track][:-4]
                 return self.scripts[egg_dicts[f][best_track]]
 
+    def open_race(self, track, difficulty, mode, hero=None):
+        self.cur_mode = (difficulty, mode)
+        self.cur_hero = hero
+        menu_button = self.image_dict["buttons race menu"]
+        race_button = self.image_dict["buttons race"]
+        while not any_present((menu_button, race_button)):
+            self.check_edge_cases(time_only=True)
+            click_image(self.image_dict["edge cases start"])
+            self.collect_reward()
+        # no need to select hero since race hero is fixed
+        while not click_image(race_button):
+            click_image(menu_button)
+        self.wait_until_click(self.image_dict["buttons OK"])
+        time.sleep(1.5)
+        # no need to ensure autostart for race either
+
     def TAS_open(self, track, difficulty, mode, hero=None):
         # opens the specified track into the specified difficulty from the home screen
         # WILL overwrite saves
         self.cur_mode = (difficulty, mode)
         self.cur_hero = hero
+        if track == "race":
+            self.open_race(track, difficulty, mode, hero)
+            return None
         play_button = self.image_dict["buttons play"]
         dif_button = "buttons %s" % self.track_difficulties[track]
         while not any_present((play_button, self.image_dict[dif_button])):
@@ -916,11 +948,13 @@ class RatioFit:
                 click_image(self.image_dict["buttons insta-monkey"])
             if self.edge_case == 1:
                 # check if we finished prematurely
-                if is_present(self.image_dict["buttons NEXT"]):
+                next_but = self.image_dict["buttons next"]
+                vict_but = self.image_dict["edge cases victory"]
+                if any_present((next_but, vict_but)):
                     raise PremieError("Script succeeded prematurely")
             if self.edge_case == 2:
                 # check if we've leveled up
-                if click_image(self.image_dict["edge cases LEVEL UP"]):
+                if click_image(self.image_dict["edge cases level up"]):
                     log("Level up")
                     if shows_up(self.image_dict["edge cases monkey knowledge"], 10):
                         click_image(self.image_dict["edge cases monkey knowledge"])
@@ -929,7 +963,7 @@ class RatioFit:
                     return True
             if self.edge_case == 3:
                 # then check for tas failure
-                if is_present(self.image_dict["edge cases restart"]):
+                if any_present((self.image_dict["edge cases restart"], self.image_dict["edge cases defeat"])):
                     self.kill_threads()
                     if self.preferences["screenshot"]:
                         self.wait_until_click(self.image_dict["edge cases review"])
@@ -1015,15 +1049,16 @@ class RatioFit:
 
     def wait_to_finish(self):
         # waits for the round to finish, then goes to the home screen
-        next_but = self.image_dict["buttons NEXT"]
-        while not is_present(next_but):
+        next_but = self.image_dict["buttons next"]
+        vict_but = self.image_dict["edge cases victory"]
+        while not any_present((next_but, vict_but)):
             try:
                 self.check_edge_cases()
             except PremieError:
                 break
         time.sleep(self.delay)
         self.kill_threads()
-        self.wait_until_click(next_but)
+        click_image(next_but)
         time.sleep(self.delay)
         home = self.image_dict["buttons home"]
         reward = self.image_dict["edge cases collect"]

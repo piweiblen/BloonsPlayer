@@ -65,5 +65,6 @@
 "quad": "expert",
 "dark castle": "expert",
 "muddy puddles": "expert",
-"ouch": "expert"
+"ouch": "expert",
+"race": "race"
 }
