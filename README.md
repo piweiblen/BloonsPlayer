@@ -87,6 +87,7 @@ See also the tas directory for more examples.
 * [change speed](#changing-speed)
 * [start round](#start-round)
 * [toggle autostart](#toggle-autostart)
+* [send rounds](#send-rounds)
 
 ### First command, opening the track
 The first command should be the "open" command and should follow the following format.
@@ -370,9 +371,15 @@ change speed
 
 ### Start round
 The "start round" command allows you to have multiple commands occur before the bot starts the round.
-If not used, the program will handle starting on its own.
+If not used, the program will automatically start on its own after the first command. 
+Adding the `slow` parameter will make the bot not immediately hit fast-forward, 
+which can be useful when timing is tight.
 ```
 start round
+```
+or
+```
+start round slow
 ```
 
 ### Toggle autostart
@@ -380,11 +387,18 @@ The "toggle autostart" command allows you to toggle autostart in the menu.
 This can be useful when many commands need to be executed in a tight time frame
 ```
 round 62
-toggle autostart  # make sure the following execute before round 63
+toggle autostart  # make sure the following executes before round 63
 place dart, (0.5, 0.9), dart1
 place dart, (0.5, 0.8), dart2
 place dart, (0.5, 0.7), dart3
 place dart, (0.5, 0.6), dart4
 toggle autostart
 change speed  # start back up again
+```
+
+### Send rounds
+The "send rounds" command allows you to send rounds in a race script. 
+It will press the button to send a round as many times as you specify in the first argument.
+```
+send rounds 12
 ```

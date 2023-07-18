@@ -29,6 +29,7 @@ def main():
     version = file.read()
     file.close()
     # open menu
+    log(f"Opening GUI for BloonsPlayer version {version}")
     chooser = ChooseOption('BloonsPlayer v' + version, screen)
     chooser.show()
 

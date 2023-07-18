@@ -638,6 +638,7 @@ class RatioFit:
     def TAS_send_rounds(self, num):
         for f in range(int(num)):
             self.click_fixed("buttons round advance")
+            time.sleep(1/30)
 
     def get_numbers(self):
         # return the amount of cash the player has as an integer
@@ -690,8 +691,8 @@ class RatioFit:
             time.sleep(0.1)
         else:
             nums = self.get_numbers()
-            if len(nums) > 2 and nums[2] not in (self.log_round, self.log_round-1):
-                log(f"Erroneous round read {nums} last valid round {self.log_round-1}")
+            #if len(nums) > 2 and nums[2] not in (self.log_round, self.log_round-1):
+            #    log(f"Erroneous round read {nums} last valid round {self.log_round-1}")
             if len(nums) > 2 and nums[2] == self.log_round:
                 now = time.time()
                 secs = round(now - self.log_time, 1)
@@ -1178,7 +1179,7 @@ class RatioFit:
                     spot = location
                 if any_present(confirm_images):
                     break
-                self.check_edge_cases()
+                self.check_edge_cases(time_only=True)
             if any_present(confirm_images):
                 break
             self.check_edge_cases(time_only=True)

@@ -7,6 +7,10 @@
     'difficulty': 'beginner',
     'dict': 'teams'
   },
+  'birthday': {
+    'difficulty': 'expert',
+    'dict': 'egg'
+  },
   'easter': {
     'difficulty': 'expert',
     'dict': 'egg'

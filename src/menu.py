@@ -128,6 +128,7 @@ class ChooseOption:
         self.create_single_select_menu(style_menu, self.styles.keys(), self.set_style, self.prefs['theme'])
         # event menu
         event_menu = tkinter.Menu(self.menu_bar, tearoff=0)
+        event_menu.add_command(label="Birthday Bonus Hunt", command=lambda: self.egg_mode("birthday"))
         event_menu.add_command(label="Easter Bonus Hunt", command=lambda: self.egg_mode("easter"))
         event_menu.add_command(label="Patriot Bonus Hunt", command=lambda: self.egg_mode("patriot"))
         event_menu.add_command(label="Pumpkin Bonus Hunt", command=lambda: self.egg_mode("pumpkin"))
@@ -481,6 +482,7 @@ class ChooseOption:
 
     def egg_loop(self):
         try:
+            log("Entering Egg mode")
             self.pos_finder.run_egg_mode(self.egg_type)
         except Exception as e:
             if type(e) == MenuBackError:
