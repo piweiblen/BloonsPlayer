@@ -364,7 +364,7 @@ class RatioFit:
                     other = 1
                 key = str(folder)+' '+str(img_name)
                 path = os.path.join(base_path, folder, image)
-                self.image_dict[key] = self.open_image(path, other)
+                self.image_dict[key.lower()] = self.open_image(path, other)
         # preprocess tracks
         for name in self.image_dict:
             if name.startswith('tracks'):
@@ -872,7 +872,7 @@ class RatioFit:
         # no need to select hero since race hero is fixed
         while not click_image(race_button):
             click_image(menu_button)
-        self.wait_until_click(self.image_dict["buttons OK"])
+        self.wait_until_click(self.image_dict["buttons ok"])
         time.sleep(1.5)
         # no need to ensure autostart for race either
 
@@ -914,10 +914,10 @@ class RatioFit:
         self.wait_until_click(self.image_dict["buttons %s" % difficulty])
         self.wait_until_click(self.image_dict["buttons %s" % mode])
         if shows_up(self.image_dict["edge cases overwrite"], 0.5):
-            self.wait_until_click(self.image_dict["buttons OK"])
+            self.wait_until_click(self.image_dict["buttons ok"])
             time.sleep(1)
         if mode in ["chimps", "impoppable", "deflation", "sandbox"]:
-            self.wait_until_click(self.image_dict["buttons OK"])
+            self.wait_until_click(self.image_dict["buttons ok"])
             time.sleep(2)
         elif mode == "apopalypse":
             self.wait_and_static_click(self.image_dict["edge cases apop play"])
