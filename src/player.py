@@ -284,12 +284,15 @@ class ThreadHandler:
 # --- player ---
 class RatioFit:
 
-    def __init__(self):
+    def __init__(self, scsz=None):
         self.delay = 0.3
         self.menu_halt = False
         # calculate the position of the playing field
         ratio = 19/11
-        x, y = pyautogui.size()
+        if scsz is None:
+            x, y = pyautogui.size()
+        else:
+            x, y = scsz
         if x / y == ratio:
             self.offset = (0, 0)
             self.width = x
@@ -371,6 +374,8 @@ class RatioFit:
                 cropped = self.image_dict[name].point(lambda p: p > 254 and 255)
                 cropped = cropped.convert('L').point(lambda p: p > 254 and 255)
                 self.image_dict[name] = self.image_dict[name].crop(cropped.getbbox())
+        # egg
+        self.default_egg = None
 
     def convert_pos(self, rel_pos):
         # return absolute screen position based on relative 0-1 floats
@@ -641,11 +646,14 @@ class RatioFit:
             time.sleep(1/30)
 
     def get_numbers(self):
+        return self.get_numbers_from_img(pyautogui.screenshot())
+
+    def get_numbers_from_img(self, img):
         # return the amount of cash the player has as an integer
-        top_left = self.convert_pos((0, 0.02))
+        top_left = self.convert_pos((0, 0.02))  # TODO: let func truly accept any image
         bottom_right = self.convert_pos((1, 0.065))
-        h = 50
-        cropped = pyautogui.screenshot().crop(top_left+bottom_right)
+        h = 75
+        cropped = img.crop(top_left+bottom_right)
         cropped = cropped.resize((int(h * cropped.width / cropped.height), h))
         cropped = cropped.point(lambda p: p > 254 and 255)
         cropped = cropped.convert('L').point(lambda p: p > 254 and 255)
@@ -658,7 +666,7 @@ class RatioFit:
             xs, ys = numpy.where(new_arr != 0)
             if xs.size > 0 and ys.size > 0:
                 new_arr = new_arr[min(xs):max(xs)+1, min(ys):max(ys)+1]
-                if new_arr.size > (h**2)/8 and new_arr.shape[0] > h/1.9:
+                if new_arr.size > (h**2)/10 and new_arr.shape[0] > h/2:
                     spot = pos_insert(hors, min(ys))
                     sections.insert(spot, new_arr)
         nums = []
@@ -671,7 +679,7 @@ class RatioFit:
                 match_arr = numpy.array(num_img)
                 guesses.append(abs(sections[i] - match_arr).sum() / match_arr.size)
             num = min(range(11), key=lambda x: guesses[x])
-            if guesses[num] < 50:
+            if guesses[num] < (h**2)/50:
                 if (hors[i] - last_pos > 75 or num > 9) and cur_num:
                     nums.append(int(cur_num))
                     cur_num = ""
@@ -822,26 +830,34 @@ class RatioFit:
                 self.wait_until_click(self.image_dict["heroes select"])
             hit_key('escape')
 
-    def EGG_open(self, egg_type):
+    def egg_open(self, egg_type):
         play_button = self.image_dict["buttons play"]
         while not is_present(play_button):
             self.check_edge_cases(time_only=True)
             click_image(self.image_dict["edge cases start"])
             self.collect_reward()
+        click_image(play_button)
+        time.sleep(self.delay)
         if type(egg_type) == str:
             egg_types = [egg_type]
         else:
             egg_types = egg_type
         egg_metas = [fetch_dict('egg meta')[egg_type] for egg_type in egg_types]
         egg_dicts = [fetch_dict(egg_meta["dict"]) for egg_meta in egg_metas]
-        dif_button = "buttons " + egg_metas[0]["difficulty"]  # disallow multi difficulty searches for now
+        dif_button = "buttons " + egg_metas[0]["difficulty"]  # does not support multi-difficulty searches
         egg_imgs = [self.image_dict[f"edge cases {egg_type} bonus"] for egg_type in egg_types]
+        i = 0
         while 1:
+            i += 1
             self.check_edge_cases(time_only=True)
             if not self.click_fixed(dif_button):
                 click_image(play_button)
             time.sleep(2)
-            for f in range(len(egg_types)):
+            if i > 5 or self.default_egg not in egg_types:
+                inds = range(len(egg_types))
+            else:
+                inds = [egg_types.index(self.default_egg)]
+            for f in inds:
                 pos = pyautogui.locateCenterOnScreen(egg_imgs[f], confidence=0.8)
                 if pos is None:
                     continue
@@ -857,6 +873,8 @@ class RatioFit:
                 if best_track is None:
                     log("track not found")
                     continue
+                # track selected
+                self.default_egg = egg_types[f]
                 self.script_name = egg_dicts[f][best_track][:-4]
                 return self.scripts[egg_dicts[f][best_track]]
 
@@ -1129,10 +1147,10 @@ class RatioFit:
 
     def run_egg_mode(self, egg_type):
         if self.rpc is not None:
-            self.rpc.update(pid=os.getpid(), details=f'{egg_type} mode', state="finding rewards",
+            self.rpc.update(pid=os.getpid(), details=f'bonus hunting mode', state="finding rewards",
                             start=self.start_time, large_image="collection", large_text="collection",
                             small_image="techbot", small_text="bot")
-        script = self.EGG_open(egg_type)
+        script = self.egg_open(egg_type)
         self.play(script)
 
     def kill_threads(self):

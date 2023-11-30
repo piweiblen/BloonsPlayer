@@ -6,6 +6,7 @@
 'rich presence': False,
 'ensure autostart': False,
 'theme': 'dark',
+'event': 'Seasonal Bonus',
 'choices': [],
 'filters': {}
 }

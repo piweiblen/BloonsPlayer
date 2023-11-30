@@ -36,7 +36,6 @@ class ChooseOption:
             self.prefs['steam path'] = steam_path()
         self.filters = dict()
         self.threader = ThreadHandler()
-        self.egg_type = ""
         # create root
         self.root = tkinter.Tk()
         self.root.title(title)
@@ -75,9 +74,12 @@ class ChooseOption:
         self.down_button = tkinter.Button(self.frame, text="⏷", command=self.move_down, **kwargs)
         self.down_button.grid(row=6, column=1, padx=40)
 
-        # go button
-        self.go_button = tkinter.Button(self.frame, text="GO", command=self.go, padx=5, pady=5)
+        # run list button
+        self.go_button = tkinter.Button(self.frame, text="Run script list", command=self.go, padx=5, pady=5)
         self.go_button.grid(row=9, column=2, padx=5, pady=5)
+        # run event button
+        self.event_button = tkinter.Button(self.frame, text="Run event mode", command=self.egg_mode, padx=5, pady=5)
+        self.event_button.grid(row=10, column=2, padx=5, pady=5)
         # create mouse position utility
         self.print_button = tkinter.Button(self.frame, text="Display mouse position", command=self.position_info,
                                            padx=5, pady=5)
@@ -128,15 +130,11 @@ class ChooseOption:
         self.create_single_select_menu(style_menu, self.styles.keys(), self.set_style, self.prefs['theme'])
         # event menu
         event_menu = tkinter.Menu(self.menu_bar, tearoff=0)
-        event_menu.add_command(label="Birthday Bonus Hunt", command=lambda: self.egg_mode("birthday"))
-        event_menu.add_command(label="Easter Bonus Hunt", command=lambda: self.egg_mode("easter"))
-        event_menu.add_command(label="Patriot Bonus Hunt", command=lambda: self.egg_mode("patriot"))
-        event_menu.add_command(label="Pumpkin Bonus Hunt", command=lambda: self.egg_mode("pumpkin"))
-        event_menu.add_command(label="Totem Bonus Hunt", command=lambda: self.egg_mode("totem"))
-        event_menu.add_command(label="Xmas Bonus Hunt", command=lambda: self.egg_mode("xmas"))
-        event_menu.add_command(label="Golden Bloon Hunt", command=lambda: self.egg_mode("golden"))
-        event_menu.add_command(label="Monkey Teams Hunt", command=lambda: self.egg_mode("teams"))
-        event_menu.add_command(label="Golden & Teams Hunt", command=lambda: self.egg_mode(("golden", "teams")))
+        self.events = {"Seasonal Bonus": ("birthday", "easter", "patriot", "pumpkin", "totem", "xmas"),
+                       "Golden Bloon": ("golden"),
+                       "Monkey Teams": ("teams"),
+                       "Golden & Teams": ("golden", "teams")}
+        self.create_single_select_menu(event_menu, self.events.keys(), None, self.prefs['event'])
         # build menu bar structure
         self.menu_bar.add_cascade(label="File", menu=file_menu)
         self.menu_bar.add_cascade(label="Filter", menu=filter_menu)
@@ -194,6 +192,7 @@ class ChooseOption:
         self.down_button.config(**button)
         self.print_button.config(**button)
         self.go_button.config(**button)
+        self.event_button.config(**button)
         self.launch_button.config(**button)
         self.back_button.config(**button)
         self.exit_button.config(**button)
@@ -209,15 +208,19 @@ class ChooseOption:
         recurse_set_menu(self.menu_bar)
 
     def create_single_select_menu(self, parent, options, func, initial):
-        options = sorted(options)
+        options = tuple(options)
         bools = [tkinter.BooleanVar(self.root, False) for f in range(len(options))]
-        bools[options.index(initial)].set(True)
+        if initial in options:
+            bools[options.index(initial)].set(True)
+        else:
+            bools[0].set(True)
         for f in range(len(options)):
             def command(index=f):
                 for g in range(len(options)):
                     bools[g].set(False)
                 bools[index].set(True)
-                func(options[index])
+                if func is not None:
+                    func(options[index])
             parent.add_checkbutton(label=options[f], onvalue=1, offvalue=0, variable=bools[f], command=command)
 
     def get_options(self):
@@ -483,7 +486,7 @@ class ChooseOption:
     def egg_loop(self):
         try:
             log("Entering Egg mode")
-            self.pos_finder.run_egg_mode(self.egg_type)
+            self.pos_finder.run_egg_mode(self.events[self.prefs['event']])
         except Exception as e:
             if type(e) == MenuBackError:
                 self.threader.end_all()
@@ -496,8 +499,7 @@ class ChooseOption:
         finally:
             self.pos_finder.kill_threads()
 
-    def egg_mode(self, event):
-        self.egg_type = event
+    def egg_mode(self):
         self.set_frame(1)
         self.threader.begin(self.egg_loop)
 
