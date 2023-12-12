@@ -4,7 +4,6 @@ from menu import *
 
 def main():
     # to get out, move mouse to the corner of the screen to trigger the failsafe
-    screen = RatioFit()
     # manage log files
     path = os.path.join(data_dir(), "log")
     for file in sorted(os.listdir(path)):
@@ -30,6 +29,7 @@ def main():
     file.close()
     # open menu
     log(f"Opening GUI for BloonsPlayer version {version}")
+    screen = RatioFit()
     chooser = ChooseOption('BloonsPlayer v' + version, screen)
     chooser.show()
 

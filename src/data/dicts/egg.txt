@@ -1,4 +1,5 @@
 {
+"glacial trail": 'glacial easy',
 "dark dungeons": 'dark dungeons easy',
 'sanctuary': 'sanctuary easy',
 'ravine': 'ravine easy',

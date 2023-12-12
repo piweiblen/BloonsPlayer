@@ -293,6 +293,7 @@ class RatioFit:
             x, y = pyautogui.size()
         else:
             x, y = scsz
+        log(f"screen size: {(x, y)}")
         if x / y == ratio:
             self.offset = (0, 0)
             self.width = x
@@ -551,7 +552,7 @@ class RatioFit:
             else:
                 base_price = self.monkey_prices[monkey]
             self.TAS_money(self.convert_price(base_price))
-        # now place
+        # now place it
         self.pause_keys = True
         monkey = monkey.lower()
         position = (float(pos_x), float(pos_y))
@@ -724,11 +725,15 @@ class RatioFit:
         spots = list(pyautogui.locateAllOnScreen(green, confidence=0.9))
         heights = [self.revert_pos(pyautogui.center(f))[1] for f in spots]
         if path == 1:
-            return any(f < 0.54 for f in heights)
+            ret = any(f < 0.54 for f in heights)
         if path == 2:
-            return any(0.54 < f < 0.68 for f in heights)
+            ret = any(0.54 < f < 0.68 for f in heights)
         if path == 3:
-            return any(0.68 < f for f in heights)
+            ret = any(0.68 < f for f in heights)
+        if ret:
+            log(repr([self.revert_pos(pyautogui.center(f)) for f in spots]))
+            log(time.time())
+        return ret
 
     def ready_to_upgrade_hero(self):
         # determines whether a hero is ready to be upgraded
@@ -770,7 +775,7 @@ class RatioFit:
             time.sleep(self.delay)
             bring_to_front('BloonsTD6')
             hit_keys(self.upgrade_dict[p])
-            log(self.upgrade_dict[p], end='')
+            log(self.upgrade_dict[p])
             time.sleep(self.delay)
         log('')
         bring_to_front('BloonsTD6')

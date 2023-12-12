@@ -1,0 +1,15 @@
+open glacial trail, easy, standard, sauda
+place hero, (0.17740, 0.50764), sauda
+repeat ability 1
+place spikes, (0.87978, 0.69306), s1
+upgrade s1, 3, 3, 3
+target s1, 3
+round 17
+upgrade s1, 1, 1
+place spikes, (0.85514, 0.61736), s2
+upgrade s2, 3, 3, 3
+target s2, 3
+round 32
+upgrade s2, 1, 1
+place spikes, (0.10535, 0.36389), s3
+upgrade s3, 2, 2, 1, 1, 1
