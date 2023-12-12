@@ -732,7 +732,7 @@ class RatioFit:
             ret = any(0.68 < f for f in heights)
         if ret:
             log(repr([self.revert_pos(pyautogui.center(f)) for f in spots]))
-            log(time.time())
+            log(str(time.time()))
         return ret
 
     def ready_to_upgrade_hero(self):
