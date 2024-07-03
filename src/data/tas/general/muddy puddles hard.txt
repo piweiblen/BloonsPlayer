@@ -5,7 +5,7 @@ repeat ability 2 # premature
 place sniper, (0.14393, 0.30625), sniper
 target sniper, 3
 place sub, (0.46328, 0.54444), sub a
-place dart, (0.27083, 0.47083), dart left
+place dart, (0.273, 0.47083), dart left
 upgrade sub a, 1, 1 # 200
 sell dart left
 upgrade sub a, 3 #201

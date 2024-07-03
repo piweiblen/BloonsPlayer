@@ -723,7 +723,8 @@ class RatioFit:
         # determines whether the selected monkey is ready to be upgraded into the specified path
         green = self.image_dict["buttons upgrade"]
         spots = list(pyautogui.locateAllOnScreen(green, confidence=0.9))
-        heights = [self.revert_pos(pyautogui.center(f))[1] for f in spots]
+        spots = [self.revert_pos(pyautogui.center(f)) for f in spots]
+        heights = [f[1] for f in spots]
         if path == 1:
             ret = any(f < 0.54 for f in heights)
         if path == 2:
@@ -731,8 +732,12 @@ class RatioFit:
         if path == 3:
             ret = any(0.68 < f for f in heights)
         if ret:
-            log(repr([self.revert_pos(pyautogui.center(f)) for f in spots]))
-            log(str(time.time()))
+            to_log = []
+            for f in spots:
+                if not any(abs(g[0]-f[0])+abs(g[1]-f[1]) < 0.01 for g in to_log):
+                    to_log.append(f)
+            log(f"{time.time():.3f}", end=': ')
+            log([(f"{f[0]:.3f}", f"{f[1]:.3f}") for f in to_log])
         return ret
 
     def ready_to_upgrade_hero(self):
@@ -800,11 +805,13 @@ class RatioFit:
                 self.TAS_click(x_place, y_place)
         hit_key('escape')
 
-    def TAS_priority(self, monkey_name):
+    def TAS_priority(self, monkey_name, x_place=None, y_place=None):
         # toggle the priority of the specified tower
         bring_to_front('BloonsTD6')
         self.TAS_click(*self.monkey_place[monkey_name])  # select monkey
         hit_key('page_down')
+        if x_place is not None and y_place is not None:
+                self.TAS_click(x_place, y_place)
         hit_key('escape')
 
     def TAS_sell(self, monkey_name):
@@ -854,7 +861,6 @@ class RatioFit:
         i = 0
         while 1:
             i += 1
-            self.check_edge_cases(time_only=True)
             if not self.click_fixed(dif_button):
                 click_image(play_button)
             time.sleep(2)
@@ -882,6 +888,7 @@ class RatioFit:
                 self.default_egg = egg_types[f]
                 self.script_name = egg_dicts[f][best_track][:-4]
                 return self.scripts[egg_dicts[f][best_track]]
+            self.check_edge_cases(time_only=True)
 
     def open_race(self, track, difficulty, mode, hero=None):
         self.cur_mode = (difficulty, mode)
@@ -1142,8 +1149,8 @@ class RatioFit:
             except PremieError:
                 log('Track finished prematurely')
                 break
-        log('Waiting for track to finish, ', end='')
-        log(time.strftime("%m/%d/%Y, %H:%M:%S"))
+        log('Waiting for track to finish: ', end='')
+        log(time.strftime("%F, %T"))
         if self.rpc is not None:
             self.rpc.update(pid=os.getpid(), details=self.script_name, state="Waiting to finish",
                             start=self.start_time, large_image=self.large_img, large_text="map",
@@ -1284,6 +1291,11 @@ def log_file():
 
 def log(txt, end='\n'):
     # add the given text to the log file
+    if not isinstance(txt, str):
+        try:
+            txt = str(txt)
+        except:
+            txt = "Failed to convert data to str"
     txt += end
     logging.info(txt)
     with open(log_file(), 'a') as file:

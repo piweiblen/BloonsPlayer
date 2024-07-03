@@ -1,6 +1,6 @@
 open quad, hard, standard, quincy
 place dart, (0.50093, 0.25278), dart top
-place dart, (0.22993, 0.52222), dart left
+place dart, (0.23535, 0.51481), dart left
 place dart, (0.77797, 0.52014), dart right
 start round
 repeat ability 1 # premature

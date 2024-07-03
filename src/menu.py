@@ -164,8 +164,11 @@ class ChooseOption:
 
     def set_frame(self, ind):
         if ind == 0 and self.pos_finder.rpc is not None:
-            self.pos_finder.rpc.update(pid=os.getpid(), details="Browsing menu", large_image="techbot",
-                                       large_text="bot", small_image="menu", small_text="menu")
+            try:
+                self.pos_finder.rpc.update(pid=os.getpid(), details="Browsing menu", large_image="techbot",
+                                        large_text="bot", small_image="menu", small_text="menu")
+            except:
+                self.pos_finder.rpc = None
         all_frames = [self.frame, self.run_frame]
         for this_frame in all_frames:
             this_frame.grid_forget()
@@ -264,7 +267,7 @@ class ChooseOption:
                 self.pos_finder.rpc.connect()
                 self.pos_finder.rpc.update(pid=os.getpid(), details="Browsing menu", large_image="techbot",
                                            large_text="bot", small_image="menu", small_text="menu")
-            except pypresence.exceptions.DiscordNotFound:
+            except:
                 print("discord not found, rich presence connection failed")
                 self.pos_finder.rpc = None
                 return None

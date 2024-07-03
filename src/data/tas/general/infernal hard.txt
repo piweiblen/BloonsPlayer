@@ -12,11 +12,10 @@ upgrade alch top, 1, 1, 1 # 300
 upgrade boat, 2 # 140
 upgrade alch top, 3 # 301
 round 40
-change speed
-use ability 1
-use ability 2
-use ability 3
-change speed
+wait 1
+repeat ability 1
+repeat ability 2
+repeat ability 3
 sell boat
 upgrade ninja, 1 # 402
 place alchemist, (0.30244, 0.19514), alch top2
@@ -25,9 +24,6 @@ place sniper, (0.27502, 0.25764), sniper top
 upgrade sniper top, 2, 2, 2, 2 # 040
 repeat move 3, (0.27502, 0.25764)
 upgrade sniper top, 1, 1 # 240
-repeat ability 1
-repeat ability 2
-repeat ability 3
 place alchemist, (0.52789, 0.68889), alch bottom
 upgrade alch bottom, 3, 1, 1, 1, 1 # 401
 upgrade sniper top, 2 # 250
@@ -36,6 +32,6 @@ upgrade alch top, 1 # 401
 place sniper, (0.73196, 0.73750), sniper bottom
 target sniper bottom, 3
 upgrade sniper bottom, 2, 2, 1, 1, 1, 1 # 420
-place alchemist, (0.75892, 0.78403), alch bottom2
+place alchemist, (0.75349, 0.78704), alch bottom2
 upgrade alch bottom2, 3, 1, 1, 1, 1 # 401
 stop move

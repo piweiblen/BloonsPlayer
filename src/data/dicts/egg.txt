@@ -7,7 +7,7 @@
 'infernal': 'infernal hard',
 'bloody puddles': 'bloody puddles easy',
 'workshop': 'workshop hard',
-'quad': 'quad hard',
+'quad': 'quad easy',
 'dark castle': 'dark castle CHIMPS (obyn)',
 'muddy puddles': 'muddy puddles hard',
 'ouch': 'ouch hard'
