@@ -1,7 +1,7 @@
 open quad, easy, standard
-place sub, (0.59250, 0.51806), sub
+place sub, (0.58250, 0.51806), sub
 upgrade sub, 1
-place sub, (0.41075, 0.51806), dom
+place sub, (0.42221, 0.52252), dom
 upgrade dom, 1
 upgrade sub, 2, 1
 upgrade dom, 2, 1

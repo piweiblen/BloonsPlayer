@@ -1333,3 +1333,4 @@ def pos_insert(lis, n):
         ind = (max_p + min_p) // 2
     lis.insert(ind, n)
     return ind
+
